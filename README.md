@@ -4,4 +4,4 @@
 
 ## what do we create
 
-## how does you control it
+## how do you control it
