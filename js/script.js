@@ -5,7 +5,7 @@ import Colors from './classes/Colors.js';
 
 {
     let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
-	let sun;
+	let sun, santaCabin, packet, ball;
 	
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
@@ -24,7 +24,7 @@ import Colors from './classes/Colors.js';
 		treesInPath = [];
 		treesPool = [];
 
-		clock=new THREE.Clock();
+		clock = new THREE.Clock();
 		clock.start();
 
 		heroRollingSpeed = (0.008 * 26/0.3) / 5;
@@ -405,7 +405,9 @@ import Colors from './classes/Colors.js';
     		addPathTree();
 		}
 		
-    	doTreeLogic();
+		doTreeLogic();
+		
+		//santaCabin.santa.updateHairs();
 
 		renderer.render(scene, camera);
 		requestAnimationFrame(loop);
@@ -425,10 +427,32 @@ import Colors from './classes/Colors.js';
 
 		createTreesPool();
 		addSanta();
-	    createWorld();
+		createWorld();
+		
+		//createSantaCabin();
+        //createChristmasPacket();
+        //createChristmasBall();
         
 	    loop();
-    }
+	};
+	
+	const createSantaCabin = () => {
+        santaCabin = new SantaCabin();
+        scene.add(santaCabin.mesh);
+    };
+
+    const createChristmasPacket = () => {
+        packet = new Packet();
+        //packet.mesh.position.y = -600;
+        scene.add(packet.mesh);
+    };
+
+    const createChristmasBall = () => {
+        ball = new Ball();
+        //ball.mesh.position.y = -600;
+        ball.mesh.scale.set(2.5, 2.5, 2.5);
+        scene.add(ball.mesh);
+    };
 
     init();
 }
