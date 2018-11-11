@@ -9,6 +9,12 @@ import Colors from './classes/Colors.js';
 	
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
+	let recognizing;
+        const transcription = document.getElementById('speech'),
+        interim_span = document.getElementById('interim');
+
+    const speech = new webkitSpeechRecognition() || speechRecognition();
+
 	let bounceValue = 0.1;
 	let gravity = 0.005;
 	let leftLane = -1;
@@ -62,7 +68,7 @@ import Colors from './classes/Colors.js';
 
 		window.addEventListener('resize', handleWindowResize, false);
 
-		document.onkeydown = handleKeyDown;
+		// document.onkeydown = handleKeyDown;
 
 	};
 
@@ -93,39 +99,40 @@ import Colors from './classes/Colors.js';
 		}
 	};
 
-	const handleKeyDown = (e) => {
-		if(jumping)return;
+	// const handleKeyDown = (e) => {
+	// 	if(jumping)return;
 
-		let validMove = true;
-		if (e.keyCode === 37) {//left
-			if(currentLane == middleLane){
-				currentLane = leftLane;
-			}else if(currentLane == rightLane){
-				currentLane = middleLane;
-			}else{
-				validMove = false;	
-			}
-		} else if (e.keyCode === 39) {//right
-			if(currentLane == middleLane) {
-				currentLane = rightLane;
-			}else if(currentLane == leftLane) {
-				currentLane = middleLane;
-			}else {
-				validMove=false;	
-			}
-		}else{
-			if (e.keyCode === 38){//up, jump
-				bounceValue = 0.1;
-				jumping = true;
-			}
-			validMove = false;
-		}
+	// 	let validMove = true;
+	// 	if (e.keyCode === 37) {//left
+	// 		if(currentLane == middleLane){
+	// 			currentLane = leftLane;
+	// 		}else if(currentLane == rightLane){
+	// 			currentLane = middleLane;
+	// 		}else{
+	// 			validMove = false;	
+	// 		}
+	// 	} else if (e.keyCode === 39) {//right
+	// 		if(currentLane == middleLane) {
+	// 			currentLane = rightLane;
+	// 		}else if(currentLane == leftLane) {
+	// 			currentLane = middleLane;
+	// 		}else {
+	// 			validMove=false;	
+	// 		}
+	// 	}else{
+	// 		if (e.keyCode === 38){//up, jump
+	// 			bounceValue = 0.1;
+	// 			jumping = true;
+	// 		}
+	// 		validMove = false;
+	// 	}
 
-		if(validMove){
-			jumping = true;
-			bounceValue = 0.06;
-		}
-	};
+	// 	if(validMove){
+	// 		jumping = true;
+	// 		bounceValue = 0.06;
+	// 	}
+
+	// };
 
 	const addSanta = () => {
 		const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
@@ -215,11 +222,11 @@ import Colors from './classes/Colors.js';
 	const addPathTree = () => {
 		const options = [0, 1, 2];
 		let lane = Math.floor(Math.random()*3);
-		addTree(true, lane);
+		// addTree(true, lane);
 		options.splice(lane, 1);
 		if(Math.random() > 0.5){
 			lane = Math.floor(Math.random()*2);
-			addTree(true,options[lane]);
+			// addTree(true,options[lane]);
 		}
 	};
 
@@ -227,39 +234,39 @@ import Colors from './classes/Colors.js';
 		const numTrees = 36;
 		const gap = 6.28/36;
 		for(let i=0; i<numTrees; i++){
-			addTree(false, i*gap, true);
-			addTree(false, i*gap, false);
+			// addTree(false, i*gap, true);
+			// addTree(false, i*gap, false);
 		}
 	};
 
-	const addTree = (inPath, row, isLeft) => {
-		let newTree;
-		if(inPath){
-			if(treesPool.length==0)return;
-			newTree = treesPool.pop();
-			newTree.visible=true;
+	// const addTree = (inPath, row, isLeft) => {
+	// 	let newTree;
+	// 	if(inPath){
+	// 		if(treesPool.length==0)return;
+	// 		newTree = treesPool.pop();
+	// 		newTree.visible=true;
 
-			treesInPath.push(newTree);
-			sphericalHelper.set(26-0.3, pathAngleValues[row], -rollingGroundSphere.rotation.x+4);
-		}else{
-			newTree = createTree();
-			let forestAreaAngle = 0;
-			if(isLeft){
-				forestAreaAngle=1.68+Math.random()*0.1;
-			}else{
-				forestAreaAngle=1.46-Math.random()*0.1;
-			}
-			sphericalHelper.set( 26-0.3, forestAreaAngle, row );
-		}
+	// 		treesInPath.push(newTree);
+	// 		sphericalHelper.set(26-0.3, pathAngleValues[row], -rollingGroundSphere.rotation.x+4);
+	// 	}else{
+	// 		newTree = createTree();
+	// 		let forestAreaAngle = 0;
+	// 		if(isLeft){
+	// 			forestAreaAngle=1.68+Math.random()*0.1;
+	// 		}else{
+	// 			forestAreaAngle=1.46-Math.random()*0.1;
+	// 		}
+	// 		sphericalHelper.set( 26-0.3, forestAreaAngle, row );
+	// 	}
 
-		newTree.position.setFromSpherical(sphericalHelper);
-		let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
-		let treeVector = newTree.position.clone().normalize();
-		newTree.quaternion.setFromUnitVectors(treeVector,rollingGroundVector);
-		newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
+	// 	newTree.position.setFromSpherical(sphericalHelper);
+	// 	let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
+	// 	let treeVector = newTree.position.clone().normalize();
+	// 	newTree.quaternion.setFromUnitVectors(treeVector,rollingGroundVector);
+	// 	newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
 	
-		rollingGroundSphere.add(newTree);
-	};
+	// 	rollingGroundSphere.add(newTree);
+	// };
 
 	const createTree = () => {
 		let sides = 8;
@@ -370,7 +377,7 @@ import Colors from './classes/Colors.js';
 				treesToRemove.push(oneTree);
 			}else{//check collision
 				if(treePos.distanceTo(heroSphere.position) <= 0.6){
-					console.log("hit");
+					// console.log("hit");
 					hasCollided = true;
 				}
 			}
@@ -383,9 +390,53 @@ import Colors from './classes/Colors.js';
 			treesInPath.splice(fromWhere,1);
 			treesPool.push(oneTree);
 			oneTree.visible = false;
-			console.log("remove tree");
+			//console.log("remove tree");
 		});
 	};
+
+	const updateSphere = () => {
+		speech.onresult = function (event) {
+            let interim_transcript = '';
+            let final_transcript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    final_transcript += event.results[i][0].transcript;
+                } else {
+                    interim_transcript += event.results[i][0].transcript;
+                }
+            }
+
+            transcription.innerHTML = final_transcript;
+            interim_span.innerHTML = interim_transcript;
+
+            final_transcript = final_transcript.trim();
+            console.log("[final_transcript] ", final_transcript, " => ", final_transcript.length);
+
+            if (final_transcript.length > 0) {
+                console.log("yay, I'm here");
+                let old = {
+                    x: heroSphere.position.x,
+                    y: heroSphere.position.y
+                };
+
+                if (final_transcript == 'right') {
+                    heroSphere.position.x += .5
+                } // Left a
+                else if (final_transcript == 'left') {
+                    heroSphere.position.x -= .5
+                } // Right d
+                else if (final_transcript == 'up') {
+                    heroSphere.position.y += .5
+                } // Up w
+                else if (final_transcript == 'down') {
+                    heroSphere.position.y -= .5
+                    console.log( heroSphere.position.y);
+                } 
+
+            }
+        }
+	}
 
 	const loop = () => {
     	rollingGroundSphere.rotation.x += 0.005;
@@ -397,13 +448,15 @@ import Colors from './classes/Colors.js';
     	}
 		
 		heroSphere.position.y += bounceValue;
-    	heroSphere.position.x = THREE.Math.lerp(heroSphere.position.x,currentLane, 2*clock.getDelta());//clock.getElapsedTime());
+    	// heroSphere.position.x = THREE.Math.lerp(heroSphere.position.x,currentLane, 2*clock.getDelta());//clock.getElapsedTime());
     	bounceValue -= gravity;
 		
 		if(clock.getElapsedTime() > treeReleaseInterval){
     		clock.start();
     		addPathTree();
 		}
+
+		updateSphere();
 		
 		doTreeLogic();
 		
@@ -421,6 +474,12 @@ import Colors from './classes/Colors.js';
 		camera.updateProjectionMatrix();
 	};
 
+	const reset = () => {
+		recognizing = false;
+        interim_span.innerHTML = '';
+        transcription.innerHTML = '';
+	}
+
     const init = () => {
         createScene();
         createLight();
@@ -433,7 +492,32 @@ import Colors from './classes/Colors.js';
         //createChristmasPacket();
         //createChristmasBall();
         
-	    loop();
+		loop();
+		
+		if (!(window.webkitSpeechRecognition) && !(window.speechRecognition)) {
+            upgrade();
+        } else {
+
+            interim_span.style.opacity = '0.5';
+            reset();
+
+            speech.continuous = true;
+            speech.interimResults = true;
+            speech.lang = 'en-US';
+            speech.start();
+
+            speech.onstart = function () {
+                recognizing = true;
+            }
+
+            speech.onerror = function(event) {
+                console.error(event.error);
+            };
+
+            speech.onend = function() {
+                reset();
+            }
+        }
 	};
 	
 	const createSantaCabin = () => {
