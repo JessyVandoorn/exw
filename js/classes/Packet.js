@@ -1,3 +1,4 @@
+import Colors from './Colors.js';
 class Packet {
 
     constructor() {

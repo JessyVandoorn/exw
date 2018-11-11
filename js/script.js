@@ -1,7 +1,10 @@
 import Santa from './classes/Santa.js';
 import Earth from './classes/Earth.js';
 import Tree from './classes/Tree.js';
+// import SantaCabin from './classes/SantaCabin.js';
+// import Packet from './classes/Packet.js';
 import Colors from './classes/Colors.js';
+// import Ball from './classes/Ball.js';
 
 {
     let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
@@ -222,11 +225,11 @@ import Colors from './classes/Colors.js';
 	const addPathTree = () => {
 		const options = [0, 1, 2];
 		let lane = Math.floor(Math.random()*3);
-		// addTree(true, lane);
+		 addTree(true, lane);
 		options.splice(lane, 1);
 		if(Math.random() > 0.5){
 			lane = Math.floor(Math.random()*2);
-			// addTree(true,options[lane]);
+			addTree(true,options[lane]);
 		}
 	};
 
@@ -234,39 +237,39 @@ import Colors from './classes/Colors.js';
 		const numTrees = 36;
 		const gap = 6.28/36;
 		for(let i=0; i<numTrees; i++){
-			// addTree(false, i*gap, true);
-			// addTree(false, i*gap, false);
+			addTree(false, i*gap, true);
+			addTree(false, i*gap, false);
 		}
 	};
 
-	// const addTree = (inPath, row, isLeft) => {
-	// 	let newTree;
-	// 	if(inPath){
-	// 		if(treesPool.length==0)return;
-	// 		newTree = treesPool.pop();
-	// 		newTree.visible=true;
+	const addTree = (inPath, row, isLeft) => {
+		let newTree;
+		if(inPath){
+			if(treesPool.length==0)return;
+			newTree = treesPool.pop();
+			newTree.visible=true;
 
-	// 		treesInPath.push(newTree);
-	// 		sphericalHelper.set(26-0.3, pathAngleValues[row], -rollingGroundSphere.rotation.x+4);
-	// 	}else{
-	// 		newTree = createTree();
-	// 		let forestAreaAngle = 0;
-	// 		if(isLeft){
-	// 			forestAreaAngle=1.68+Math.random()*0.1;
-	// 		}else{
-	// 			forestAreaAngle=1.46-Math.random()*0.1;
-	// 		}
-	// 		sphericalHelper.set( 26-0.3, forestAreaAngle, row );
-	// 	}
+			treesInPath.push(newTree);
+			sphericalHelper.set(26-0.3, pathAngleValues[row], -rollingGroundSphere.rotation.x+4);
+		}else{
+			newTree = createTree();
+			let forestAreaAngle = 0;
+			if(isLeft){
+				forestAreaAngle=1.68+Math.random()*0.1;
+			}else{
+				forestAreaAngle=1.46-Math.random()*0.1;
+			}
+			sphericalHelper.set( 26-0.3, forestAreaAngle, row );
+		}
 
-	// 	newTree.position.setFromSpherical(sphericalHelper);
-	// 	let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
-	// 	let treeVector = newTree.position.clone().normalize();
-	// 	newTree.quaternion.setFromUnitVectors(treeVector,rollingGroundVector);
-	// 	newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
+		newTree.position.setFromSpherical(sphericalHelper);
+		let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
+		let treeVector = newTree.position.clone().normalize();
+		newTree.quaternion.setFromUnitVectors(treeVector,rollingGroundVector);
+		newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
 	
-	// 	rollingGroundSphere.add(newTree);
-	// };
+		rollingGroundSphere.add(newTree);
+	};
 
 	const createTree = () => {
 		let sides = 8;
@@ -379,6 +382,7 @@ import Colors from './classes/Colors.js';
 				if(treePos.distanceTo(heroSphere.position) <= 0.6){
 					// console.log("hit");
 					hasCollided = true;
+					addExplosion();
 				}
 			}
 		});
@@ -488,9 +492,9 @@ import Colors from './classes/Colors.js';
 		addSanta();
 		createWorld();
 		
-		//createSantaCabin();
-        //createChristmasPacket();
-        //createChristmasBall();
+		// createSantaCabin();
+        // createChristmasPacket();
+        // createChristmasBall();
         
 		loop();
 		
