@@ -4,9 +4,9 @@ import Tree from './classes/Tree.js';
 import Colors from './classes/Colors.js';
 
 {
-    let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
+	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
 	let sun, santaCabin, packet, ball;
-	
+
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
 	let bounceValue = 0.1;
@@ -14,51 +14,57 @@ import Colors from './classes/Colors.js';
 	let leftLane = -1;
 	let rightLane = 1;
 	let middleLane = 0;
-	let treeReleaseInterval=0.5;
-	let lastTreeReleaseTime=0;
-	let explosionPower =1.06;
+	let treeReleaseInterval = 0.5;
+	let lastTreeReleaseTime = 0;
+	let explosionPower = 1.06;
+
+	let lives = 3;
+
+	let id;
 
 	const game = {};
 
 	let treesInPath, treesPool, rollingGroundSphere, heroSphere, heroRollingSpeed, sphericalHelper, pathAngleValues;
 
-	const createScene = () =>{
+	const createScene = () => {
 		treesInPath = [];
 		treesPool = [];
 
 		clock = new THREE.Clock();
 		clock.start();
 
-		heroRollingSpeed = (0.008 * 26/0.3) / 5;
+		heroRollingSpeed = (0.008 * 26 / 0.3) / 5;
 		sphericalHelper = new THREE.Spherical();
-		pathAngleValues=[1.52, 1.57, 1.62];
-		
+		pathAngleValues = [1.52, 1.57, 1.62];
+
 		sceneWidth = window.innerWidth;
-    	sceneHeight = window.innerHeight;
-    	scene = new THREE.Scene();
-    	scene.fog = new THREE.FogExp2(0xf0fff0, 0.14);
-		
-		aspectRatio = sceneWidth/sceneHeight;
-        fieldOfView = 60;
-        nearPlane = 0.1;
-        farPlane = 1000;
-        camera = new THREE.PerspectiveCamera(
-            fieldOfView,
-            aspectRatio,
-            nearPlane,
-            farPlane
+		sceneHeight = window.innerHeight;
+		scene = new THREE.Scene();
+		scene.fog = new THREE.FogExp2(0xf0fff0, 0.14);
+
+		aspectRatio = sceneWidth / sceneHeight;
+		fieldOfView = 60;
+		nearPlane = 0.1;
+		farPlane = 1000;
+		camera = new THREE.PerspectiveCamera(
+			fieldOfView,
+			aspectRatio,
+			nearPlane,
+			farPlane
 		)
 
-    	renderer = new THREE.WebGLRenderer({alpha:true});
-    	renderer.shadowMap.enabled = true;
-    	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		renderer = new THREE.WebGLRenderer({
+			alpha: true
+		});
+		renderer.shadowMap.enabled = true;
+		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		renderer.setSize(sceneWidth, sceneHeight);
-		
-    	container = document.getElementById('world');
+
+		container = document.getElementById('world');
 		container.appendChild(renderer.domElement);
 
 		addExplosion();
-	
+
 		camera.position.z = 6.5;
 		camera.position.y = 2.5;
 
@@ -68,62 +74,62 @@ import Colors from './classes/Colors.js';
 
 	};
 
-	const addExplosion = () =>{
+	const addExplosion = () => {
 		particleGeometry = new THREE.Geometry();
-		
-		for (let i = 0; i < 20; i ++ ) {
+
+		for (let i = 0; i < 20; i++) {
 			const vertex = new THREE.Vector3();
-			particleGeometry.vertices.push( vertex );
+			particleGeometry.vertices.push(vertex);
 		}
 
 		const pMaterial = new THREE.ParticleBasicMaterial({
-	  		color: 0xfffafa,
-	  		size: 0.2
+			color: 0xfffafa,
+			size: 0.2
 		});
 
-		particles = new THREE.Points( particleGeometry, pMaterial);
+		particles = new THREE.Points(particleGeometry, pMaterial);
 		scene.add(particles);
-		particles.visible=false;
+		particles.visible = false;
 	};
 
 	const createTreesPool = () => {
 		const maxTreesInPool = 10;
 		let newTree;
-		for(let i=0; i<maxTreesInPool; i++){
+		for (let i = 0; i < maxTreesInPool; i++) {
 			newTree = createTree();
 			treesPool.push(newTree);
 		}
 	};
 
 	const handleKeyDown = (e) => {
-		if(jumping)return;
+		if (jumping) return;
 
 		let validMove = true;
-		if (e.keyCode === 37) {//left
-			if(currentLane == middleLane){
+		if (e.keyCode === 37) { //left
+			if (currentLane == middleLane) {
 				currentLane = leftLane;
-			}else if(currentLane == rightLane){
+			} else if (currentLane == rightLane) {
 				currentLane = middleLane;
-			}else{
-				validMove = false;	
+			} else {
+				validMove = false;
 			}
-		} else if (e.keyCode === 39) {//right
-			if(currentLane == middleLane) {
+		} else if (e.keyCode === 39) { //right
+			if (currentLane == middleLane) {
 				currentLane = rightLane;
-			}else if(currentLane == leftLane) {
+			} else if (currentLane == leftLane) {
 				currentLane = middleLane;
-			}else {
-				validMove=false;	
+			} else {
+				validMove = false;
 			}
-		}else{
-			if (e.keyCode === 38){//up, jump
+		} else {
+			if (e.keyCode === 38) { //up, jump
 				bounceValue = 0.1;
 				jumping = true;
 			}
 			validMove = false;
 		}
 
-		if(validMove){
+		if (validMove) {
 			jumping = true;
 			bounceValue = 0.06;
 		}
@@ -131,9 +137,9 @@ import Colors from './classes/Colors.js';
 
 	const addSanta = () => {
 		const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
-		const sphereMaterial = new THREE.MeshStandardMaterial({ 
+		const sphereMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.white,
-			shading:THREE.FlatShading
+			shading: THREE.FlatShading
 		})
 
 		jumping = false;
@@ -152,11 +158,11 @@ import Colors from './classes/Colors.js';
 		const sides = 40;
 		const tiers = 40;
 		const sphereGeometry = new THREE.SphereGeometry(26, sides, tiers);
-		const sphereMaterial = new THREE.MeshStandardMaterial({ 
+		const sphereMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.colorGround,
 			shading: THREE.FlatShading
 		})
-	
+
 		let vertexIndex;
 		let vertexVector = new THREE.Vector3();
 		let nextVertexVector = new THREE.Vector3();
@@ -166,33 +172,33 @@ import Colors from './classes/Colors.js';
 		let lerpValue = 0.5;
 		let heightValue;
 		let maxHeight = 0.07;
-		
-		for(let j=1; j<tiers-2; j++){
+
+		for (let j = 1; j < tiers - 2; j++) {
 			currentTier = j;
-			for(let i=0; i<sides; i++){
-				vertexIndex=(currentTier*sides)+1;
-				vertexVector=sphereGeometry.vertices[i+vertexIndex].clone();
-				if(j%2!==0){
-					if(i==0){
-						firstVertexVector=vertexVector.clone();
+			for (let i = 0; i < sides; i++) {
+				vertexIndex = (currentTier * sides) + 1;
+				vertexVector = sphereGeometry.vertices[i + vertexIndex].clone();
+				if (j % 2 !== 0) {
+					if (i == 0) {
+						firstVertexVector = vertexVector.clone();
 					}
-					nextVertexVector=sphereGeometry.vertices[i+vertexIndex+1].clone();
-					if(i==sides-1){
-						nextVertexVector=firstVertexVector;
+					nextVertexVector = sphereGeometry.vertices[i + vertexIndex + 1].clone();
+					if (i == sides - 1) {
+						nextVertexVector = firstVertexVector;
 					}
-					lerpValue=(Math.random()*(0.75-0.25))+0.25;
-					vertexVector.lerp(nextVertexVector,lerpValue);
+					lerpValue = (Math.random() * (0.75 - 0.25)) + 0.25;
+					vertexVector.lerp(nextVertexVector, lerpValue);
 				}
-				heightValue=(Math.random()*maxHeight)-(maxHeight/2);
-				offset=vertexVector.clone().normalize().multiplyScalar(heightValue);
-				sphereGeometry.vertices[i+vertexIndex]=(vertexVector.add(offset));
+				heightValue = (Math.random() * maxHeight) - (maxHeight / 2);
+				offset = vertexVector.clone().normalize().multiplyScalar(heightValue);
+				sphereGeometry.vertices[i + vertexIndex] = (vertexVector.add(offset));
 			}
 		}
 
 		rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 		rollingGroundSphere.receiveShadow = true;
 		rollingGroundSphere.castShadow = false;
-		rollingGroundSphere.rotation.z = -Math.PI/2;
+		rollingGroundSphere.rotation.z = -Math.PI / 2;
 		scene.add(rollingGroundSphere);
 		rollingGroundSphere.position.y = -24;
 		rollingGroundSphere.position.z = 2;
@@ -211,97 +217,97 @@ import Colors from './classes/Colors.js';
 		sun.shadow.mapSize.width = 256;
 		sun.shadow.mapSize.height = 256;
 		sun.shadow.camera.near = 0.5;
-		sun.shadow.camera.far = 50 ;
+		sun.shadow.camera.far = 50;
 	};
 
 	const addPathTree = () => {
 		const options = [0, 1, 2];
-		let lane = Math.floor(Math.random()*3);
+		let lane = Math.floor(Math.random() * 3);
 		addTree(true, lane);
 		options.splice(lane, 1);
-		if(Math.random() > 0.5){
-			lane = Math.floor(Math.random()*2);
-			addTree(true,options[lane]);
+		if (Math.random() > 0.5) {
+			lane = Math.floor(Math.random() * 2);
+			addTree(true, options[lane]);
 		}
 	};
 
 	const addWorldTrees = () => {
 		const numTrees = 36;
-		const gap = 6.28/36;
-		for(let i=0; i<numTrees; i++){
-			addTree(false, i*gap, true);
-			addTree(false, i*gap, false);
+		const gap = 6.28 / 36;
+		for (let i = 0; i < numTrees; i++) {
+			addTree(false, i * gap, true);
+			addTree(false, i * gap, false);
 		}
 	};
 
 	const addTree = (inPath, row, isLeft) => {
 		let newTree;
-		if(inPath){
-			if(treesPool.length==0)return;
+		if (inPath) {
+			if (treesPool.length == 0) return;
 			newTree = treesPool.pop();
-			newTree.visible=true;
+			newTree.visible = true;
 
 			treesInPath.push(newTree);
-			sphericalHelper.set(26-0.3, pathAngleValues[row], -rollingGroundSphere.rotation.x+4);
-		}else{
+			sphericalHelper.set(26 - 0.3, pathAngleValues[row], -rollingGroundSphere.rotation.x + 4);
+		} else {
 			newTree = createTree();
 			let forestAreaAngle = 0;
-			if(isLeft){
-				forestAreaAngle=1.68+Math.random()*0.1;
-			}else{
-				forestAreaAngle=1.46-Math.random()*0.1;
+			if (isLeft) {
+				forestAreaAngle = 1.68 + Math.random() * 0.1;
+			} else {
+				forestAreaAngle = 1.46 - Math.random() * 0.1;
 			}
-			sphericalHelper.set( 26-0.3, forestAreaAngle, row );
+			sphericalHelper.set(26 - 0.3, forestAreaAngle, row);
 		}
 
 		newTree.position.setFromSpherical(sphericalHelper);
 		let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
 		let treeVector = newTree.position.clone().normalize();
-		newTree.quaternion.setFromUnitVectors(treeVector,rollingGroundVector);
-		newTree.rotation.x += (Math.random()*(2*Math.PI/10))+-Math.PI/10;
-	
+		newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
+		newTree.rotation.x += (Math.random() * (2 * Math.PI / 10)) + -Math.PI / 10;
+
 		rollingGroundSphere.add(newTree);
 	};
 
 	const createTree = () => {
 		let sides = 8;
 		let tiers = 6;
-		let scalarMultiplier = (Math.random()*(0.25-0.1))+0.05;
+		let scalarMultiplier = (Math.random() * (0.25 - 0.1)) + 0.05;
 		let midPointVector = new THREE.Vector3();
 		let vertexVector = new THREE.Vector3();
 		let treeGeometry = new THREE.ConeGeometry(0.5, 1, sides, tiers);
-		let treeMaterial = new THREE.MeshStandardMaterial( { 
+		let treeMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.treeMaterial,
-			shading:THREE.FlatShading  
+			shading: THREE.FlatShading
 		});
-		
+
 		let offset;
 		midPointVector = treeGeometry.vertices[0].clone();
 		let currentTier = 0;
 		let vertexIndex;
-		
+
 		blowUpTree(treeGeometry.vertices, sides, 0, scalarMultiplier);
 		tightenTree(treeGeometry.vertices, sides, 1);
-		blowUpTree(treeGeometry.vertices, sides, 2, scalarMultiplier*1.1, true);
+		blowUpTree(treeGeometry.vertices, sides, 2, scalarMultiplier * 1.1, true);
 		tightenTree(treeGeometry.vertices, sides, 3);
-		blowUpTree(treeGeometry.vertices, sides, 4, scalarMultiplier*1.2);
+		blowUpTree(treeGeometry.vertices, sides, 4, scalarMultiplier * 1.2);
 		tightenTree(treeGeometry.vertices, sides, 5);
-		
+
 		const treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
 		treeTop.castShadow = true;
 		treeTop.receiveShadow = false;
 		treeTop.position.y = 0.9;
-		treeTop.rotation.y = (Math.random()*(Math.PI));
-		
-		const treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1,0.5);
-		const trunkMaterial = new THREE.MeshStandardMaterial({ 
+		treeTop.rotation.y = (Math.random() * (Math.PI));
+
+		const treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
+		const trunkMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.trunkMaterial,
-			shading:THREE.FlatShading  
+			shading: THREE.FlatShading
 		});
 
 		const treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
 		treeTrunk.position.y = 0.25;
-		
+
 		const tree = new THREE.Object3D();
 		tree.add(treeTrunk);
 		tree.add(treeTop);
@@ -309,53 +315,53 @@ import Colors from './classes/Colors.js';
 		return tree;
 	};
 
-	const blowUpTree = (vertices,sides,currentTier,scalarMultiplier,odd) => {
+	const blowUpTree = (vertices, sides, currentTier, scalarMultiplier, odd) => {
 		let vertexIndex;
 		let vertexVector = new THREE.Vector3();
 		let midPointVector = vertices[0].clone();
 		let offset;
-		
-		for(let i=0; i<sides; i++){
-			vertexIndex = (currentTier*sides)+1;
-			vertexVector = vertices[i+vertexIndex].clone();
+
+		for (let i = 0; i < sides; i++) {
+			vertexIndex = (currentTier * sides) + 1;
+			vertexVector = vertices[i + vertexIndex].clone();
 			midPointVector.y = vertexVector.y;
 			offset = vertexVector.sub(midPointVector);
-			
-			if(odd){
-				if(i%2 === 0){
-					offset.normalize().multiplyScalar(scalarMultiplier/6);
-					vertices[i+vertexIndex].add(offset);
-				}else{
+
+			if (odd) {
+				if (i % 2 === 0) {
+					offset.normalize().multiplyScalar(scalarMultiplier / 6);
+					vertices[i + vertexIndex].add(offset);
+				} else {
 					offset.normalize().multiplyScalar(scalarMultiplier);
-					vertices[i+vertexIndex].add(offset);
-					vertices[i+vertexIndex].y = vertices[i+vertexIndex+sides].y+0.05;
+					vertices[i + vertexIndex].add(offset);
+					vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
 				}
-			}else{
-				if(i%2!==0){
-					offset.normalize().multiplyScalar(scalarMultiplier/6);
-					vertices[i+vertexIndex].add(offset);
-				}else{
+			} else {
+				if (i % 2 !== 0) {
+					offset.normalize().multiplyScalar(scalarMultiplier / 6);
+					vertices[i + vertexIndex].add(offset);
+				} else {
 					offset.normalize().multiplyScalar(scalarMultiplier);
-					vertices[i+vertexIndex].add(offset);
-					vertices[i+vertexIndex].y = vertices[i+vertexIndex+sides].y+0.05;
+					vertices[i + vertexIndex].add(offset);
+					vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
 				}
 			}
 		}
 	};
 
-	const tightenTree = (vertices,sides,currentTier) => {
+	const tightenTree = (vertices, sides, currentTier) => {
 		let vertexIndex;
 		let vertexVector = new THREE.Vector3();
 		let midPointVector = vertices[0].clone();
 		let offset;
-	
-		for(let i=0; i<sides; i++){
-			vertexIndex = (currentTier*sides)+1;
-			vertexVector = vertices[i+vertexIndex].clone();
+
+		for (let i = 0; i < sides; i++) {
+			vertexIndex = (currentTier * sides) + 1;
+			vertexVector = vertices[i + vertexIndex].clone();
 			midPointVector.y = vertexVector.y;
 			offset = vertexVector.sub(midPointVector);
 			offset.normalize().multiplyScalar(0.06);
-			vertices[i+vertexIndex].sub(offset);
+			vertices[i + vertexIndex].sub(offset);
 		}
 	};
 
@@ -365,24 +371,28 @@ import Colors from './classes/Colors.js';
 		let treesToRemove = [];
 
 		treesInPath.forEach(function (element, index) {
-			oneTree=treesInPath[index];
+			oneTree = treesInPath[index];
 			treePos.setFromMatrixPosition(oneTree.matrixWorld);
-		
-			if(treePos.z>6 &&oneTree.visible){//gone out of our view zone
+
+			if (treePos.z > 6 && oneTree.visible) { //gone out of our view zone
 				treesToRemove.push(oneTree);
-			}else{//check collision
-				if(treePos.distanceTo(heroSphere.position) <= 0.6){
+			} else { //check collision
+				if (treePos.distanceTo(heroSphere.position) <= 0.6) {
 					console.log("hit");
 					hasCollided = true;
+					// lives--;
+					if (lives <= 0) {
+						gameOver();
+					}
 				}
 			}
 		});
-		
+
 		let fromWhere;
 		treesToRemove.forEach(function (element, index) {
 			oneTree = treesToRemove[index];
 			fromWhere = treesInPath.indexOf(oneTree);
-			treesInPath.splice(fromWhere,1);
+			treesInPath.splice(fromWhere, 1);
 			treesPool.push(oneTree);
 			oneTree.visible = false;
 			console.log("remove tree");
@@ -390,85 +400,102 @@ import Colors from './classes/Colors.js';
 	};
 
 	const loop = () => {
-    	rollingGroundSphere.rotation.x += 0.005;
-    	heroSphere.rotation.x -= heroRollingSpeed;
-		
-		if(heroSphere.position.y <= 1.8){
-    		jumping = false;
-    		bounceValue = (Math.random()*0.04) + 0.005;
-    	}
-		
-		heroSphere.position.y += bounceValue;
-    	heroSphere.position.x = THREE.Math.lerp(heroSphere.position.x,currentLane, 2*clock.getDelta());//clock.getElapsedTime());
-    	bounceValue -= gravity;
-		
-		if(clock.getElapsedTime() > treeReleaseInterval){
-    		clock.start();
-    		addPathTree();
+		rollingGroundSphere.rotation.x += 0.005;
+		heroSphere.rotation.x -= heroRollingSpeed;
+
+		if (heroSphere.position.y <= 1.8) {
+			jumping = false;
+			bounceValue = (Math.random() * 0.04) + 0.005;
 		}
-		
+
+		heroSphere.position.y += bounceValue;
+		heroSphere.position.x = THREE.Math.lerp(heroSphere.position.x, currentLane, 2 * clock.getDelta()); //clock.getElapsedTime());
+		bounceValue -= gravity;
+
+		if (clock.getElapsedTime() > treeReleaseInterval) {
+			clock.start();
+			addPathTree();
+		}
+
 		doTreeLogic();
-		
+
 		//santaCabin.santa.updateHairs();
 
 		renderer.render(scene, camera);
-		requestAnimationFrame(loop);
+		id = requestAnimationFrame(loop);
+		//  if(lives <= 0){
+		// 	 cancelAnimationFrame(id);
+		//  }
 	};
 
 	const handleWindowResize = () => {
 		sceneHeight = window.innerHeight;
 		sceneWidth = window.innerWidth;
 		renderer.setSize(sceneWidth, sceneHeight);
-		camera.aspect = sceneWidth/sceneHeight;
+		camera.aspect = sceneWidth / sceneHeight;
 		camera.updateProjectionMatrix();
 	};
 
 	const startGame = () => {
+		const title = document.createElement(`h1`);
+		title.textContent = 'Save Christmas';
+		title.classList.add(`title`);
+		const container = document.querySelector(`body`);
+		container.appendChild(title);
 		document.addEventListener('keypress', (event) => {
-			if(event.keyCode === 32){
+			if (event.keyCode === 32) {
 				loop();
+				title.classList.add(`hide`);
 			} else {
 				console.log('error');
 			}
-			//console.log(event);
-		
-		})
-}
 
-    const init = () => {
-        createScene();
-        createLight();
+		})
+	}
+
+	const gameOver = () => {
+		const container  = document.getElementById(`world`);
+		container.removeChild(document.querySelector(`canvas`));
+		const element = document.querySelector(`h1`);
+		element.classList.remove('hide');
+		element.textContent = 'game over';
+
+	}
+
+	const init = () => {
+		createScene();
+		createLight();
 
 		createTreesPool();
 		addSanta();
 		createWorld();
-		
+
 		//createSantaCabin();
-        //createChristmasPacket();
+		//createChristmasPacket();
 		//createChristmasBall();
-		
+
 		startGame();
-        
-	    //loop();
+
+		//loop();
 	};
-	
+
 	const createSantaCabin = () => {
-        santaCabin = new SantaCabin();
-        scene.add(santaCabin.mesh);
-    };
+		santaCabin = new SantaCabin();
+		scene.add(santaCabin.mesh);
+	};
 
-    const createChristmasPacket = () => {
-        packet = new Packet();
-        //packet.mesh.position.y = -600;
-        scene.add(packet.mesh);
-    };
+	const createChristmasPacket = () => {
+		packet = new Packet();
+		//packet.mesh.position.y = -600;
+		scene.add(packet.mesh);
+	};
 
-    const createChristmasBall = () => {
-        ball = new Ball();
-        //ball.mesh.position.y = -600;
-        ball.mesh.scale.set(2.5, 2.5, 2.5);
-        scene.add(ball.mesh);
-    };
+	const createChristmasBall = () => {
+		ball = new Ball();
+		//ball.mesh.position.y = -600;
+		ball.mesh.scale.set(2.5, 2.5, 2.5);
+		scene.add(ball.mesh);
+	};
 
-    init();
+	init();
 }
