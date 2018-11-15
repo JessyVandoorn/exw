@@ -108,7 +108,7 @@ import Colors from './classes/Colors.js';
 		}, gotStream);
 	}
 
-
+	let ac;
 	var rafID = null;
 	var tracks = null;
 	var buflen = 1024;
@@ -181,31 +181,42 @@ import Colors from './classes/Colors.js';
 	function updatePitch(time) {
 		var cycles = new Array;
 		analyser.getFloatTimeDomainData(buf);
-		var ac = autoCorrelate(buf, audioContext.sampleRate);
+		 ac = autoCorrelate(buf, audioContext.sampleRate);
 
-		if (ac == -1) {
-			detectorElem.className = "vague";
-			pitchElem.innerText = "--";
-			noteElem.innerText = "-";
-			detuneElem.className = "";
-			detuneAmount.innerText = "--";
-		} else {
-			detectorElem.className = "confident";
-			pitch = ac;
-			pitchElem.innerText = Math.round(pitch);
-			var note = noteFromPitch(pitch);
-			noteElem.innerHTML = noteStrings[note % 12];
-			var detune = centsOffFromPitch(pitch, note);
-			if (detune == 0) {
-				detuneElem.className = "";
-				detuneAmount.innerHTML = "--";
-			} else {
-				if (detune < 0)
-					detuneElem.className = "flat";
-				else
-					detuneElem.className = "sharp";
-				detuneAmount.innerHTML = Math.abs(detune);
-			}
+		// if (ac == -1) {
+		// 	detectorElem.className = "vague";
+		// 	pitchElem.innerText = "--";
+		// 	noteElem.innerText = "-";
+		// 	detuneElem.className = "";
+		// 	detuneAmount.innerText = "--";
+		// } else {
+		// 	detectorElem.className = "confident";
+		// 	pitch = ac;
+		// 	console.log(ac);
+		// 	pitchElem.innerText = Math.round(pitch);
+		// 	var note = noteFromPitch(pitch);
+		// 	noteElem.innerHTML = noteStrings[note % 12];
+		// 	var detune = centsOffFromPitch(pitch, note);
+		// 	if (detune == 0) {
+		// 		detuneElem.className = "";
+		// 		detuneAmount.innerHTML = "--";
+		// 	} else {
+		// 		if (detune < 0)
+		// 			detuneElem.className = "flat";
+		// 		else
+		// 			detuneElem.className = "sharp";
+		// 		detuneAmount.innerHTML = Math.abs(detune);
+		// 	}
+		// }
+
+		console.log(ac);
+
+		if(ac == -1){
+			console.log('geen toonhoogtes');
+		} else if(ac < 300){
+			console.log('lage toonhoogtes');
+		} else if(ac > 300) {
+			console.log('hoge toonhoogtes');
 		}
 
 		if (!window.requestAnimationFrame)
@@ -552,49 +563,26 @@ import Colors from './classes/Colors.js';
 		});
 	};
 
-	// const updateSphere = () => {
-	// 	speech.onresult = function (event) {
-	// 		let interim_transcript = '';
-	// 		let final_transcript = '';
+	
 
-	// 		for (let i = event.resultIndex; i < event.results.length; i++) {
-	// 			if (event.results[i].isFinal) {
-	// 				final_transcript += event.results[i][0].transcript;
-	// 			} else {
-	// 				interim_transcript += event.results[i][0].transcript;
-	// 			}
-	// 		}
+	 const updateSphere = () => {
+		// const old = {
+		// 	x: heroSphere.position.x,
+		// 	y: heroSphere.position.y
+		// };
 
-	// 		transcription.innerHTML = final_transcript;
-	// 		interim_span.innerHTML = interim_transcript;
+		if(ac == -1){
+			// heroSphere.position.x = O;
+			//heroSphere.position.y = old.y;
 
-	// 		final_transcript = final_transcript.trim();
-	// 		console.log("[final_transcript] ", final_transcript, " => ", final_transcript.length);
-
-	// 		if (final_transcript.length > 0) {
-	// 			console.log("yay, I'm here");
-	// 			let old = {
-	// 				x: heroSphere.position.x,
-	// 				y: heroSphere.position.y
-	// 			};
-
-	// 			if (final_transcript == 'right') {
-	// 				heroSphere.position.x += .5
-	// 			} // Left a
-	// 			else if (final_transcript == 'left') {
-	// 				heroSphere.position.x -= .5
-	// 			} // Right d
-	// 			else if (final_transcript == 'up') {
-	// 				heroSphere.position.y += .5
-	// 			} // Up w
-	// 			else if (final_transcript == 'down') {
-	// 				heroSphere.position.y -= .5
-	// 				console.log(heroSphere.position.y);
-	// 			}
-
-	// 		}
-	// 	}
-	// }
+		} else if(ac < 300){
+			heroSphere.position.x -= .05;
+			// heroSphere.position.y -
+		} else if(ac > 300){
+			heroSphere.position.x += .05;
+			heroSphere.position.y += .05;
+		}
+	 }
 
 	const loop = () => {
 		rollingGroundSphere.rotation.x += 0.005;
@@ -616,7 +604,7 @@ import Colors from './classes/Colors.js';
 
 		
 
-		// updateSphere();
+		updateSphere();
 
 		doTreeLogic();
 		audioContext = new window.AudioContext();
