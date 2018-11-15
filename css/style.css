@@ -9,3 +9,7 @@ body {
     overflow: hidden;
     background: linear-gradient(#DAEDF2, #8DD5EC);
 }
+
+.hide {
+    display: none;
+}

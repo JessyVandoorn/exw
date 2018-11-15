@@ -24,6 +24,8 @@ import Colors from './classes/Colors.js';
 	let lastTreeReleaseTime = 0;
 	let explosionPower = 1.06;
 
+	let sound;
+
 	let treesInPath, treesPool, rollingGroundSphere, heroSphere, heroRollingSpeed, sphericalHelper, pathAngleValues;
 
 	window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -209,7 +211,7 @@ import Colors from './classes/Colors.js';
 		// 	}
 		// }
 
-		console.log(ac);
+		// console.log(ac);
 
 		if(ac == -1){
 			console.log('geen toonhoogtes');
@@ -576,11 +578,11 @@ import Colors from './classes/Colors.js';
 			//heroSphere.position.y = old.y;
 
 		} else if(ac < 300){
-			heroSphere.position.x -= .05;
+			heroSphere.position.x -= .025;
 			// heroSphere.position.y -
 		} else if(ac > 300){
-			heroSphere.position.x += .05;
-			heroSphere.position.y += .05;
+			heroSphere.position.x += .025;
+			heroSphere.position.y += .025;
 		}
 	 }
 
@@ -623,6 +625,24 @@ import Colors from './classes/Colors.js';
 		camera.updateProjectionMatrix();
 	};
 
+	const loadAudio = () => {
+		const audioLoader = new THREE.AudioLoader();
+		audioLoader.load('../assets/audio/music.mp3', function(buffer){
+			sound.setBuffer(buffer);
+			sound.setLoop(true);
+			sound.setVolume(1);
+			sound.play();
+		})
+	}
+
+	const addAudio = () => {
+		const listener = new THREE.AudioListener();
+		camera.add(listener);
+		sound = new THREE.Audio(listener);
+
+		loadAudio();
+	}
+
 
 
 	const init = () => {
@@ -638,6 +658,8 @@ import Colors from './classes/Colors.js';
 		// createChristmasBall();
 
 		loop();
+
+		addAudio();
 
 		toggleLiveInput();
 
