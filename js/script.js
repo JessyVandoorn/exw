@@ -18,6 +18,8 @@ import Colors from './classes/Colors.js';
 	let lastTreeReleaseTime=0;
 	let explosionPower =1.06;
 
+	const game = {};
+
 	let treesInPath, treesPool, rollingGroundSphere, heroSphere, heroRollingSpeed, sphericalHelper, pathAngleValues;
 
 	const createScene = () =>{
@@ -421,6 +423,18 @@ import Colors from './classes/Colors.js';
 		camera.updateProjectionMatrix();
 	};
 
+	const startGame = () => {
+		document.addEventListener('keypress', (event) => {
+			if(event.keyCode === 32){
+				loop();
+			} else {
+				console.log('error');
+			}
+			//console.log(event);
+		
+		})
+}
+
     const init = () => {
         createScene();
         createLight();
@@ -431,9 +445,11 @@ import Colors from './classes/Colors.js';
 		
 		//createSantaCabin();
         //createChristmasPacket();
-        //createChristmasBall();
+		//createChristmasBall();
+		
+		startGame();
         
-	    loop();
+	    //loop();
 	};
 	
 	const createSantaCabin = () => {
