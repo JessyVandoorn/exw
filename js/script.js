@@ -1,11 +1,12 @@
-import Santa from './classes/Santa.js';
-import Earth from './classes/Earth.js';
-import Tree from './classes/Tree.js';
 import Colors from './classes/Colors.js';
 
 {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
 	let sun, santaCabin, packet, ball;
+
+	var particlesSnow = []; 
+	var particleImage = new Image(); //THREE.ImageUtils.loadTexture( "http://i.imgur.com/cTALZ.png" );
+	particleImage.src = '../assets/img/particleSmoke.png'; 
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
@@ -419,8 +420,6 @@ import Colors from './classes/Colors.js';
 
 		doTreeLogic();
 
-		//santaCabin.santa.updateHairs();
-
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
 		//  if(lives <= 0){
@@ -440,18 +439,28 @@ import Colors from './classes/Colors.js';
 		const title = document.createElement(`h1`);
 		title.textContent = 'Save Christmas';
 		title.classList.add(`title`);
-		const container = document.querySelector(`body`);
-		container.appendChild(title);
+
+		const description = document.createElement(`p`);
+		description.textContent = 'Press space to start the game';
+		description.classList.add(`description`);
+
+		const containerdiv = document.createElement(`div`);
+		containerdiv.classList.add(`container`);
+		containerdiv.appendChild(title);
+		containerdiv.appendChild(description);
+
+		const containerbody = document.querySelector(`body`);
+		containerbody.appendChild(containerdiv);
+
 		document.addEventListener('keypress', (event) => {
 			if (event.keyCode === 32) {
 				loop();
-				title.classList.add(`hide`);
+				containerdiv.classList.add(`hide`);
 			} else {
 				console.log('error');
 			}
-
 		})
-	}
+	};
 
 	const gameOver = () => {
 		const container  = document.getElementById(`world`);
@@ -459,8 +468,7 @@ import Colors from './classes/Colors.js';
 		const element = document.querySelector(`h1`);
 		element.classList.remove('hide');
 		element.textContent = 'game over';
-
-	}
+	};
 
 	const init = () => {
 		createScene();
