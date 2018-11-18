@@ -10,6 +10,7 @@
 body {
     margin: 0;
     font-family: Cambria, Georgia, Times, serif;
+    background: #8DD5EC;
 }
 
 #world {
@@ -44,4 +45,22 @@ body {
 
 .hide {
     display: none;
+}
+
+.startbtn {
+    color: white;
+    text-transform: uppercase;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    border: .2rem solid white;
+    padding: .5rem 0;
+    cursor: pointer;
+    width: 15rem;
+    margin: 0 auto;
+}
+
+.startbtn:hover {
+    background-color: white;
+    color: #000;
 }

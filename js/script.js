@@ -64,33 +64,12 @@ import Colors from './classes/Colors.js';
 		container = document.getElementById('world');
 		container.appendChild(renderer.domElement);
 
-		addExplosion();
-
 		camera.position.z = 6.5;
 		camera.position.y = 2.5;
 
 		window.addEventListener('resize', handleWindowResize, false);
 
 		document.onkeydown = handleKeyDown;
-
-	};
-
-	const addExplosion = () => {
-		particleGeometry = new THREE.Geometry();
-
-		for (let i = 0; i < 20; i++) {
-			const vertex = new THREE.Vector3();
-			particleGeometry.vertices.push(vertex);
-		}
-
-		const pMaterial = new THREE.ParticleBasicMaterial({
-			color: 0xfffafa,
-			size: 0.2
-		});
-
-		particles = new THREE.Points(particleGeometry, pMaterial);
-		scene.add(particles);
-		particles.visible = false;
 	};
 
 	const createTreesPool = () => {
@@ -381,7 +360,7 @@ import Colors from './classes/Colors.js';
 				if (treePos.distanceTo(heroSphere.position) <= 0.6) {
 					console.log("hit");
 					hasCollided = true;
-					// lives--;
+					lives--;
 					if (lives <= 0) {
 						gameOver();
 					}
@@ -422,9 +401,9 @@ import Colors from './classes/Colors.js';
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
-		//  if(lives <= 0){
-		// 	 cancelAnimationFrame(id);
-		//  }
+		if(lives <= 0){
+			cancelAnimationFrame(id);
+		}
 	};
 
 	const handleWindowResize = () => {
@@ -465,9 +444,21 @@ import Colors from './classes/Colors.js';
 	const gameOver = () => {
 		const container  = document.getElementById(`world`);
 		container.removeChild(document.querySelector(`canvas`));
+
 		const element = document.querySelector(`h1`);
-		element.classList.remove('hide');
-		element.textContent = 'game over';
+		element.textContent = 'Game over';
+
+		const startbtn = document.querySelector('p');
+		startbtn.textContent = 'Play again';
+		startbtn.classList.add('startbtn');
+		startbtn.addEventListener('click', handlePlayAgain);
+
+		const containerInfo = document.querySelector('.container');
+		containerInfo.classList.remove('hide');
+	};
+
+	const handlePlayAgain = e => {
+		e.currentTarget;
 	};
 
 	const init = () => {
@@ -483,8 +474,6 @@ import Colors from './classes/Colors.js';
 		//createChristmasBall();
 
 		startGame();
-
-		//loop();
 	};
 
 	const createSantaCabin = () => {
