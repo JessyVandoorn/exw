@@ -1,12 +1,13 @@
 import Colors from './classes/Colors.js';
-
+import SnowBall from './classes/SnowBall.js';
+import ChristmasBall from './classes/ChristmasBall.js'; 
 {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
-	let sun, santaCabin, packet, ball;
+	let sun, santaCabin, packet, ball, christmasBall;
 
-	var particlesSnow = []; 
+	var particlesSnow = [];
 	var particleImage = new Image(); //THREE.ImageUtils.loadTexture( "http://i.imgur.com/cTALZ.png" );
-	particleImage.src = '../assets/img/particleSmoke.png'; 
+	particleImage.src = '../assets/img/particleSmoke.png';
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
@@ -20,16 +21,15 @@ import Colors from './classes/Colors.js';
 	let explosionPower = 1.06;
 
 	let lives = 3;
-
+	const nBalls = 10;
 	let id;
 
-	const game = {};
-
-	let treesInPath, treesPool, rollingGroundSphere, heroSphere, heroRollingSpeed, sphericalHelper, pathAngleValues;
+	let treesInPath, treesPool, ballsPool, world, heroSphere, heroRollingSpeed, sphericalHelper, pathAngleValues;
 
 	const createScene = () => {
 		treesInPath = [];
 		treesPool = [];
+		ballsPool = [];
 
 		clock = new THREE.Clock();
 		clock.start();
@@ -68,8 +68,6 @@ import Colors from './classes/Colors.js';
 		camera.position.y = 2.5;
 
 		window.addEventListener('resize', handleWindowResize, false);
-
-		document.onkeydown = handleKeyDown;
 	};
 
 	const createTreesPool = () => {
@@ -81,57 +79,11 @@ import Colors from './classes/Colors.js';
 		}
 	};
 
-	const handleKeyDown = (e) => {
-		if (jumping) return;
-
-		let validMove = true;
-		if (e.keyCode === 37) { //left
-			if (currentLane == middleLane) {
-				currentLane = leftLane;
-			} else if (currentLane == rightLane) {
-				currentLane = middleLane;
-			} else {
-				validMove = false;
-			}
-		} else if (e.keyCode === 39) { //right
-			if (currentLane == middleLane) {
-				currentLane = rightLane;
-			} else if (currentLane == leftLane) {
-				currentLane = middleLane;
-			} else {
-				validMove = false;
-			}
-		} else {
-			if (e.keyCode === 38) { //up, jump
-				bounceValue = 0.1;
-				jumping = true;
-			}
-			validMove = false;
-		}
-
-		if (validMove) {
-			jumping = true;
-			bounceValue = 0.06;
-		}
-	};
-
 	const addSanta = () => {
-		const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
-		const sphereMaterial = new THREE.MeshStandardMaterial({
-			color: Colors.white,
-			shading: THREE.FlatShading
-		})
-
+		heroSphere = new SnowBall();
 		jumping = false;
-		heroSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-		heroSphere.receiveShadow = true;
-		heroSphere.castShadow = true;
-		scene.add(heroSphere);
-
-		heroSphere.position.y = 1.8;
-		heroSphere.position.z = 4.8;
-		currentLane = middleLane;
-		heroSphere.position.x = currentLane;
+		heroSphere.mesh.position.y = .05;
+		scene.add(heroSphere.mesh);
 	};
 
 	const createWorld = () => {
@@ -139,7 +91,7 @@ import Colors from './classes/Colors.js';
 		const tiers = 40;
 		const sphereGeometry = new THREE.SphereGeometry(26, sides, tiers);
 		const sphereMaterial = new THREE.MeshStandardMaterial({
-			color: Colors.colorGround,
+			color: Colors.white,
 			shading: THREE.FlatShading
 		})
 
@@ -175,20 +127,21 @@ import Colors from './classes/Colors.js';
 			}
 		}
 
-		rollingGroundSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-		rollingGroundSphere.receiveShadow = true;
-		rollingGroundSphere.castShadow = false;
-		rollingGroundSphere.rotation.z = -Math.PI / 2;
-		scene.add(rollingGroundSphere);
-		rollingGroundSphere.position.y = -24;
-		rollingGroundSphere.position.z = 2;
+		world = new THREE.Mesh(sphereGeometry, sphereMaterial);
+		world.receiveShadow = true;
+		world.castShadow = false;
+		world.rotation.z = -Math.PI / 2;
+		scene.add(world);
+		world.position.y = -24;
+		world.position.z = 2;
 		addWorldTrees();
+		//addWorldBalls();
 	};
 
 	const createLight = () => {
-		const hemisphereLight = new THREE.HemisphereLight(0xfffafa, 0x000000, 1)
+		const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1)
 		scene.add(hemisphereLight);
-		sun = new THREE.DirectionalLight(0xcdc1c5, 1);
+		sun = new THREE.DirectionalLight(0xffffff, 1);
 		sun.position.set(12, 6, -7);
 		sun.castShadow = true;
 		scene.add(sun);
@@ -228,7 +181,8 @@ import Colors from './classes/Colors.js';
 			newTree.visible = true;
 
 			treesInPath.push(newTree);
-			sphericalHelper.set(26 - 0.3, pathAngleValues[row], -rollingGroundSphere.rotation.x + 4);
+			//plaats van bomen op de planeet - ze kunnen eropgezet worden
+			sphericalHelper.set(26 - 0.3, pathAngleValues[row], -world.rotation.x + 4);
 		} else {
 			newTree = createTree();
 			let forestAreaAngle = 0;
@@ -241,12 +195,12 @@ import Colors from './classes/Colors.js';
 		}
 
 		newTree.position.setFromSpherical(sphericalHelper);
-		let rollingGroundVector = rollingGroundSphere.position.clone().normalize();
+		let rollingGroundVector = world.position.clone().normalize();
 		let treeVector = newTree.position.clone().normalize();
 		newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
 		newTree.rotation.x += (Math.random() * (2 * Math.PI / 10)) + -Math.PI / 10;
 
-		rollingGroundSphere.add(newTree);
+		world.add(newTree);
 	};
 
 	const createTree = () => {
@@ -357,14 +311,14 @@ import Colors from './classes/Colors.js';
 			if (treePos.z > 6 && oneTree.visible) { //gone out of our view zone
 				treesToRemove.push(oneTree);
 			} else { //check collision
-				if (treePos.distanceTo(heroSphere.position) <= 0.6) {
-					console.log("hit");
-					hasCollided = true;
-					lives--;
-					if (lives <= 0) {
-						gameOver();
-					}
-				}
+				// if (treePos.distanceTo(heroSphere.mesh.position) <= 0.6) {
+				// 	console.log("hit");
+				// 	hasCollided = true;
+				// 	lives--;
+				// 	if (lives <= 0) {
+				// 		gameOver();
+				// 	}
+				// }
 			}
 		});
 
@@ -380,16 +334,16 @@ import Colors from './classes/Colors.js';
 	};
 
 	const loop = () => {
-		rollingGroundSphere.rotation.x += 0.005;
-		heroSphere.rotation.x -= heroRollingSpeed;
+		world.rotation.x += 0.005;
+		//heroSphere.mesh.rotation.x -= .002;
 
-		if (heroSphere.position.y <= 1.8) {
+		if (heroSphere.mesh.position.y <= 1.8) {
 			jumping = false;
-			bounceValue = (Math.random() * 0.04) + 0.005;
+			bounceValue = (Math.random() * .04) + 0.005;
 		}
 
-		heroSphere.position.y += bounceValue;
-		heroSphere.position.x = THREE.Math.lerp(heroSphere.position.x, currentLane, 2 * clock.getDelta()); //clock.getElapsedTime());
+		heroSphere.mesh.position.y = bounceValue;
+		//heroSphere.mesh.position.x = THREE.Math.lerp(heroSphere.mesh.position.x, currentLane, 2 * clock.getDelta()); //clock.getElapsedTime());
 		bounceValue -= gravity;
 
 		if (clock.getElapsedTime() > treeReleaseInterval) {
@@ -398,13 +352,16 @@ import Colors from './classes/Colors.js';
 		}
 
 		doTreeLogic();
+		
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
-		if(lives <= 0){
+		if (lives <= 0) {
 			cancelAnimationFrame(id);
 		}
 	};
+
+	window.setInterval(function(){addWorldBalls()}, Math.random()*1000);
 
 	const handleWindowResize = () => {
 		sceneHeight = window.innerHeight;
@@ -415,6 +372,9 @@ import Colors from './classes/Colors.js';
 	};
 
 	const startGame = () => {
+		if (document.getElementById('container')) {
+			document.getElementById('container').remove();
+		}
 		const title = document.createElement(`h1`);
 		title.textContent = 'Save Christmas';
 		title.classList.add(`title`);
@@ -424,7 +384,7 @@ import Colors from './classes/Colors.js';
 		description.classList.add(`description`);
 
 		const containerdiv = document.createElement(`div`);
-		containerdiv.classList.add(`container`);
+		containerdiv.setAttribute(`id`, 'container');
 		containerdiv.appendChild(title);
 		containerdiv.appendChild(description);
 
@@ -435,6 +395,9 @@ import Colors from './classes/Colors.js';
 			if (event.keyCode === 32) {
 				loop();
 				containerdiv.classList.add(`hide`);
+				container = document.getElementById('world');
+				lives = 3;
+				container.appendChild(renderer.domElement);
 			} else {
 				console.log('error');
 			}
@@ -442,8 +405,10 @@ import Colors from './classes/Colors.js';
 	};
 
 	const gameOver = () => {
-		const container  = document.getElementById(`world`);
-		container.removeChild(document.querySelector(`canvas`));
+		const container = document.getElementById(`world`);
+		if (container.contains(document.querySelector('canvas'))) {
+			container.removeChild(document.querySelector(`canvas`));
+		}
 
 		const element = document.querySelector(`h1`);
 		element.textContent = 'Game over';
@@ -453,12 +418,13 @@ import Colors from './classes/Colors.js';
 		startbtn.classList.add('startbtn');
 		startbtn.addEventListener('click', handlePlayAgain);
 
-		const containerInfo = document.querySelector('.container');
+		const containerInfo = document.querySelector('#container');
 		containerInfo.classList.remove('hide');
 	};
 
 	const handlePlayAgain = e => {
 		e.currentTarget;
+		startGame();
 	};
 
 	const init = () => {
@@ -469,29 +435,21 @@ import Colors from './classes/Colors.js';
 		addSanta();
 		createWorld();
 
-		//createSantaCabin();
-		//createChristmasPacket();
-		//createChristmasBall();
-
 		startGame();
 	};
 
-	const createSantaCabin = () => {
-		santaCabin = new SantaCabin();
-		scene.add(santaCabin.mesh);
-	};
-
-	const createChristmasPacket = () => {
-		packet = new Packet();
-		//packet.mesh.position.y = -600;
-		scene.add(packet.mesh);
-	};
-
-	const createChristmasBall = () => {
-		ball = new Ball();
-		//ball.mesh.position.y = -600;
-		ball.mesh.scale.set(2.5, 2.5, 2.5);
-		scene.add(ball.mesh);
+	const addWorldBalls = () => {
+		christmasBall = new ChristmasBall();
+		const numBalls = 1;
+		// const gap = 6.28 / 36;
+		for (let i = 0; i < numBalls; i++) {
+			christmasBall = new ChristmasBall();
+			christmasBall.mesh.scale.set(.02,.02,.02);
+			christmasBall.mesh.position.x = Math.random()*6.5 - 3.5;
+			christmasBall.mesh.position.y = Math.random()*2.5;
+			christmasBall.mesh.position.z = Math.random()*.5;
+			scene.add(christmasBall.mesh);
+		}
 	};
 
 	init();

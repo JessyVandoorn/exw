@@ -1,7 +1,8 @@
-class Ball {
+class ChristmasBall {
 
     constructor() {
         this.mesh = new THREE.Object3D();
+        this.mesh.name = "ball";
 
         // A random color
         const colors = ['#ff0051', '#f56762','#a53c6c','#f19fa0','#72bdbf','#47689b'];
@@ -51,4 +52,4 @@ class Ball {
         this.mesh.add(shapeTwo);
     }
 }
-export default Ball;
+export default ChristmasBall;

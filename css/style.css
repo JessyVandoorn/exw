@@ -21,7 +21,7 @@ body {
     background: #8DD5EC;
 }
 
-.container {
+#container {
     position: absolute;
     text-align: center;
 
