@@ -30,39 +30,23 @@ import Colors from './classes/Colors.js';
 
 	window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
-	var audioContext = null;
-	var isPlaying = false;
-	var sourceNode = null;
-	var analyser = null;
-	var theBuffer = null;
-	var DEBUGCANVAS = null;
-	var mediaStreamSource = null;
-	var detectorElem,
-		canvasElem,
-		waveCanvas,
-		pitchElem,
-		noteElem,
-		detuneElem,
-		detuneAmount;
+	let audioContext = null;
+	let isPlaying = false;
+	let sourceNode = null;
+	let analyser = null;
+	let theBuffer = null;
+	let DEBUGCANVAS = null;
+	let mediaStreamSource = null;
 
 	window.onload = function () {
 		audioContext = new AudioContext();
+	};
 
-		detectorElem = document.getElementById("detector");
-		canvasElem = document.getElementById("output");
-
-		pitchElem = document.getElementById("pitch");
-		noteElem = document.getElementById("note");
-		detuneElem = document.getElementById("detune");
-		detuneAmount = document.getElementById("detune_amt");
-
-	}
-
-	function error() {
+	const error = () => {
 		alert('Stream generation failed.');
-	}
+	};
 
-	function getUserMedia(dictionary, callback) {
+	const getUserMedia = (dictionary, callback) => {
 		try {
 			navigator.getUserMedia =
 				navigator.getUserMedia ||
@@ -72,9 +56,9 @@ import Colors from './classes/Colors.js';
 		} catch (e) {
 			alert('getUserMedia threw exception :' + e);
 		}
-	}
+	};
 
-	function gotStream(stream) {
+	const gotStream = (stream) => {
 		// Create an AudioNode from the stream.
 		mediaStreamSource = audioContext.createMediaStreamSource(stream);
 
@@ -83,10 +67,10 @@ import Colors from './classes/Colors.js';
 		analyser.fftSize = 2048;
 		mediaStreamSource.connect(analyser);
 		updatePitch();
-	}
+	};
 
 
-	function toggleLiveInput() {
+	const toggleLiveInput = () => {
 		if (isPlaying) {
 			//stop playing and return
 			sourceNode.stop(0);
@@ -108,33 +92,19 @@ import Colors from './classes/Colors.js';
 				"optional": []
 			},
 		}, gotStream);
-	}
+	};
 
 	let ac;
-	var rafID = null;
-	var tracks = null;
-	var buflen = 1024;
-	var buf = new Float32Array(buflen);
+	let rafID = null;
+	let tracks = null;
+	let buflen = 1024;
+	let buf = new Float32Array(buflen);
 
-	var noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
-	function noteFromPitch(frequency) {
-		var noteNum = 12 * (Math.log(frequency / 440) / Math.log(2));
-		return Math.round(noteNum) + 69;
-	}
+	let MIN_SAMPLES = 0; // will be initialized when AudioContext is created.
+	let GOOD_ENOUGH_CORRELATION = 0.9; // this is the "bar" for how close a correlation needs to be
 
-	function frequencyFromNoteNumber(note) {
-		return 440 * Math.pow(2, (note - 69) / 12);
-	}
-
-	function centsOffFromPitch(frequency, note) {
-		return Math.floor(1200 * Math.log(frequency / frequencyFromNoteNumber(note)) / Math.log(2));
-	}
-
-	var MIN_SAMPLES = 0; // will be initialized when AudioContext is created.
-	var GOOD_ENOUGH_CORRELATION = 0.9; // this is the "bar" for how close a correlation needs to be
-
-	function autoCorrelate(buf, sampleRate) {
+	const autoCorrelate = (buf, sampleRate) => {
 		var SIZE = buf.length;
 		var MAX_SAMPLES = Math.floor(SIZE / 2);
 		var best_offset = -1;
@@ -178,40 +148,12 @@ import Colors from './classes/Colors.js';
 		}
 		return -1;
 		//	var best_frequency = sampleRate/best_offset;
-	}
+	};
 
-	function updatePitch(time) {
+	const updatePitch = (time) => {
 		var cycles = new Array;
 		analyser.getFloatTimeDomainData(buf);
 		 ac = autoCorrelate(buf, audioContext.sampleRate);
-
-		// if (ac == -1) {
-		// 	detectorElem.className = "vague";
-		// 	pitchElem.innerText = "--";
-		// 	noteElem.innerText = "-";
-		// 	detuneElem.className = "";
-		// 	detuneAmount.innerText = "--";
-		// } else {
-		// 	detectorElem.className = "confident";
-		// 	pitch = ac;
-		// 	console.log(ac);
-		// 	pitchElem.innerText = Math.round(pitch);
-		// 	var note = noteFromPitch(pitch);
-		// 	noteElem.innerHTML = noteStrings[note % 12];
-		// 	var detune = centsOffFromPitch(pitch, note);
-		// 	if (detune == 0) {
-		// 		detuneElem.className = "";
-		// 		detuneAmount.innerHTML = "--";
-		// 	} else {
-		// 		if (detune < 0)
-		// 			detuneElem.className = "flat";
-		// 		else
-		// 			detuneElem.className = "sharp";
-		// 		detuneAmount.innerHTML = Math.abs(detune);
-		// 	}
-		// }
-
-		// console.log(ac);
 
 		if(ac == -1){
 			console.log('geen toonhoogtes');
@@ -224,9 +166,7 @@ import Colors from './classes/Colors.js';
 		if (!window.requestAnimationFrame)
 			window.requestAnimationFrame = window.webkitRequestAnimationFrame;
 		rafID = window.requestAnimationFrame(updatePitch);
-	}
-
-
+	};
 
 
 	const createScene = () => {
