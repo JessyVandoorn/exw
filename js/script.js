@@ -1,10 +1,7 @@
 import Santa from './classes/Santa.js';
 import Earth from './classes/Earth.js';
 import Tree from './classes/Tree.js';
-// import SantaCabin from './classes/SantaCabin.js';
-// import Packet from './classes/Packet.js';
 import Colors from './classes/Colors.js';
-// import Ball from './classes/Ball.js';
 
 {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
@@ -23,6 +20,7 @@ import Colors from './classes/Colors.js';
 	let treeReleaseInterval = 0.5;
 	let lastTreeReleaseTime = 0;
 	let explosionPower = 1.06;
+	let old;
 
 	let sound;
 
@@ -105,27 +103,27 @@ import Colors from './classes/Colors.js';
 	let GOOD_ENOUGH_CORRELATION = 0.9; // this is the "bar" for how close a correlation needs to be
 
 	const autoCorrelate = (buf, sampleRate) => {
-		var SIZE = buf.length;
-		var MAX_SAMPLES = Math.floor(SIZE / 2);
-		var best_offset = -1;
-		var best_correlation = 0;
-		var rms = 0;
-		var foundGoodCorrelation = false;
-		var correlations = new Array(MAX_SAMPLES);
+		let SIZE = buf.length;
+		let MAX_SAMPLES = Math.floor(SIZE / 2);
+		let best_offset = -1;
+		let best_correlation = 0;
+		let rms = 0;
+		let foundGoodCorrelation = false;
+		let correlations = new Array(MAX_SAMPLES);
 
-		for (var i = 0; i < SIZE; i++) {
-			var val = buf[i];
+		for (let i = 0; i < SIZE; i++) {
+			let val = buf[i];
 			rms += val * val;
 		}
 		rms = Math.sqrt(rms / SIZE);
 		if (rms < 0.01) // not enough signal
 			return -1;
 
-		var lastCorrelation = 1;
-		for (var offset = MIN_SAMPLES; offset < MAX_SAMPLES; offset++) {
-			var correlation = 0;
+		let lastCorrelation = 1;
+		for (let offset = MIN_SAMPLES; offset < MAX_SAMPLES; offset++) {
+			let correlation = 0;
 
-			for (var i = 0; i < MAX_SAMPLES; i++) {
+			for (let i = 0; i < MAX_SAMPLES; i++) {
 				correlation += Math.abs((buf[i]) - (buf[i + offset]));
 			}
 			correlation = 1 - (correlation / MAX_SAMPLES);
@@ -137,7 +135,7 @@ import Colors from './classes/Colors.js';
 					best_offset = offset;
 				}
 			} else if (foundGoodCorrelation) {
-				var shift = (correlations[best_offset + 1] - correlations[best_offset - 1]) / correlations[best_offset];
+				let shift = (correlations[best_offset + 1] - correlations[best_offset - 1]) / correlations[best_offset];
 				return sampleRate / (best_offset + (8 * shift));
 			}
 			lastCorrelation = correlation;
@@ -147,19 +145,19 @@ import Colors from './classes/Colors.js';
 			return sampleRate / best_offset;
 		}
 		return -1;
-		//	var best_frequency = sampleRate/best_offset;
+		//	let best_frequency = sampleRate/best_offset;
 	};
 
 	const updatePitch = (time) => {
-		var cycles = new Array;
+		let cycles = new Array;
 		analyser.getFloatTimeDomainData(buf);
-		 ac = autoCorrelate(buf, audioContext.sampleRate);
+		ac = autoCorrelate(buf, audioContext.sampleRate);
 
-		if(ac == -1){
+		if (ac == -1) {
 			console.log('geen toonhoogtes');
-		} else if(ac < 300){
+		} else if (ac < 300) {
 			console.log('lage toonhoogtes');
-		} else if(ac > 300) {
+		} else if (ac > 300) {
 			console.log('hoge toonhoogtes');
 		}
 
@@ -206,33 +204,12 @@ import Colors from './classes/Colors.js';
 		container = document.getElementById('world');
 		container.appendChild(renderer.domElement);
 
-		addExplosion();
-
 		camera.position.z = 6.5;
 		camera.position.y = 2.5;
 
 		window.addEventListener('resize', handleWindowResize, false);
 
-		// document.onkeydown = handleKeyDown;
 
-	};
-
-	const addExplosion = () => {
-		particleGeometry = new THREE.Geometry();
-
-		for (let i = 0; i < 20; i++) {
-			const vertex = new THREE.Vector3();
-			particleGeometry.vertices.push(vertex);
-		}
-
-		const pMaterial = new THREE.ParticleBasicMaterial({
-			color: 0xfffafa,
-			size: 0.2
-		});
-
-		particles = new THREE.Points(particleGeometry, pMaterial);
-		scene.add(particles);
-		particles.visible = false;
 	};
 
 	const createTreesPool = () => {
@@ -261,6 +238,11 @@ import Colors from './classes/Colors.js';
 		heroSphere.position.z = 4.8;
 		currentLane = middleLane;
 		heroSphere.position.x = currentLane;
+
+		old = {
+			x: heroSphere.position.x,
+			y: heroSphere.position.y
+		}
 	};
 
 	const createWorld = () => {
@@ -487,44 +469,34 @@ import Colors from './classes/Colors.js';
 				treesToRemove.push(oneTree);
 			} else { //check collision
 				if (treePos.distanceTo(heroSphere.position) <= 0.6) {
-					// console.log("hit");
+					console.log(treesInPath);
 					hasCollided = true;
-					addExplosion();
+					treesInPath[index].visible = false;
+				} else {
+					treesInPath[index].visible = true;
 				}
 			}
 		});
-
-		let fromWhere;
-		treesToRemove.forEach(function (element, index) {
-			oneTree = treesToRemove[index];
-			fromWhere = treesInPath.indexOf(oneTree);
-			treesInPath.splice(fromWhere, 1);
-			treesPool.push(oneTree);
-			oneTree.visible = false;
-			//console.log("remove tree");
-		});
 	};
 
-	
 
-	 const updateSphere = () => {
-		// const old = {
-		// 	x: heroSphere.position.x,
-		// 	y: heroSphere.position.y
-		// };
 
-		if(ac == -1){
-			// heroSphere.position.x = O;
-			//heroSphere.position.y = old.y;
+	const updateSphere = () => {
 
-		} else if(ac < 300){
+
+		if (ac == -1) {
+			// heroSphere.position.x = old.x;
+			// heroSphere.position.y = old.y;
+
+		} 
+		else if (ac < 300) {
 			heroSphere.position.x -= .025;
 			// heroSphere.position.y -
-		} else if(ac > 300){
+		} else if (ac > 1000) {
 			heroSphere.position.x += .025;
 			heroSphere.position.y += .025;
 		}
-	 }
+	}
 
 	const loop = () => {
 		rollingGroundSphere.rotation.x += 0.005;
@@ -543,8 +515,6 @@ import Colors from './classes/Colors.js';
 			clock.start();
 			addPathTree();
 		}
-
-		
 
 		updateSphere();
 
@@ -567,7 +537,7 @@ import Colors from './classes/Colors.js';
 
 	const loadAudio = () => {
 		const audioLoader = new THREE.AudioLoader();
-		audioLoader.load('../assets/audio/music.mp3', function(buffer){
+		audioLoader.load('../assets/audio/music.mp3', function (buffer) {
 			sound.setBuffer(buffer);
 			sound.setLoop(true);
 			sound.setVolume(1);
@@ -593,41 +563,19 @@ import Colors from './classes/Colors.js';
 		addSanta();
 		createWorld();
 
-		// createSantaCabin();
-		// createChristmasPacket();
-		// createChristmasBall();
-
 		loop();
 
 		addAudio();
 
 		toggleLiveInput();
 
-		document.querySelector('button').addEventListener('click', function() {
+		document.querySelector('button').addEventListener('click', function () {
 			context.resume().then(() => {
-			  console.log('Playback resumed successfully');
+				console.log('Playback resumed successfully');
 			});
 		})
 
 
-	};
-
-	const createSantaCabin = () => {
-		santaCabin = new SantaCabin();
-		scene.add(santaCabin.mesh);
-	};
-
-	const createChristmasPacket = () => {
-		packet = new Packet();
-		//packet.mesh.position.y = -600;
-		scene.add(packet.mesh);
-	};
-
-	const createChristmasBall = () => {
-		ball = new Ball();
-		//ball.mesh.position.y = -600;
-		ball.mesh.scale.set(2.5, 2.5, 2.5);
-		scene.add(ball.mesh);
 	};
 
 	init();
