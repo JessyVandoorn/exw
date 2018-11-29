@@ -1,30 +1,22 @@
 import Colors from './classes/Colors.js';
 import SnowBall from './classes/SnowBall.js';
 import ChristmasBall from './classes/ChristmasBall.js'; 
+import SnowParticles from './classes/SnowParticles.js';
 {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
-	let sun, santaCabin, packet, ball, christmasBall;
-
-	var particlesSnow = [];
-	var particleImage = new Image(); //THREE.ImageUtils.loadTexture( "http://i.imgur.com/cTALZ.png" );
-	particleImage.src = '../assets/img/particleSmoke.png';
+	let sun, christmasBall, particlesSnow;
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
 	let bounceValue = 0.1;
 	let gravity = 0.005;
-	let leftLane = -1;
-	let rightLane = 1;
-	let middleLane = 0;
 	let treeReleaseInterval = 0.5;
-	let lastTreeReleaseTime = 0;
-	let explosionPower = 1.06;
 
 	let lives = 3;
 	const nBalls = 10;
 	let id;
 
-	let treesInPath, treesPool, ballsPool, world, heroSphere, heroRollingSpeed, sphericalHelper, pathAngleValues;
+	let treesInPath, treesPool, ballsPool, world, snowBall, heroRollingSpeed, sphericalHelper, pathAngleValues;
 
 	const createScene = () => {
 		treesInPath = [];
@@ -79,11 +71,11 @@ import ChristmasBall from './classes/ChristmasBall.js';
 		}
 	};
 
-	const addSanta = () => {
-		heroSphere = new SnowBall();
+	const addSnowBall = () => {
+		snowBall = new SnowBall();
 		jumping = false;
-		heroSphere.mesh.position.y = .05;
-		scene.add(heroSphere.mesh);
+		snowBall.mesh.position.y = .05;
+		scene.add(snowBall.mesh);
 	};
 
 	const createWorld = () => {
@@ -91,8 +83,7 @@ import ChristmasBall from './classes/ChristmasBall.js';
 		const tiers = 40;
 		const sphereGeometry = new THREE.SphereGeometry(26, sides, tiers);
 		const sphereMaterial = new THREE.MeshStandardMaterial({
-			color: Colors.white,
-			shading: THREE.FlatShading
+			color: Colors.white
 		})
 
 		let vertexIndex;
@@ -135,12 +126,11 @@ import ChristmasBall from './classes/ChristmasBall.js';
 		world.position.y = -24;
 		world.position.z = 2;
 		addWorldTrees();
-		//addWorldBalls();
 	};
 
 	const createLight = () => {
-		const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1)
-		scene.add(hemisphereLight);
+		const ambientLight = new THREE.AmbientLight(0xffffff, 1); 
+		scene.add(ambientLight);
 		sun = new THREE.DirectionalLight(0xffffff, 1);
 		sun.position.set(12, 6, -7);
 		sun.castShadow = true;
@@ -311,7 +301,7 @@ import ChristmasBall from './classes/ChristmasBall.js';
 			if (treePos.z > 6 && oneTree.visible) { //gone out of our view zone
 				treesToRemove.push(oneTree);
 			} else { //check collision
-				// if (treePos.distanceTo(heroSphere.mesh.position) <= 0.6) {
+				// if (treePos.distanceTo(snowBall.mesh.position) <= 0.6) {
 				// 	console.log("hit");
 				// 	hasCollided = true;
 				// 	lives--;
@@ -333,17 +323,28 @@ import ChristmasBall from './classes/ChristmasBall.js';
 		});
 	};
 
+	const createSnow = () => {
+		particlesSnow = new SnowParticles();
+		scene.add(particlesSnow.mesh);
+	};
+
+	const addWorldBalls = () => {
+		christmasBall = new ChristmasBall();
+		christmasBall.mesh.scale.set(.01, .01, .01);
+		christmasBall.mesh.position.x = Math.random() * 6.5 - 3.5;
+		scene.add(christmasBall.mesh);
+	};
+
 	const loop = () => {
 		world.rotation.x += 0.005;
-		//heroSphere.mesh.rotation.x -= .002;
-
-		if (heroSphere.mesh.position.y <= 1.8) {
+		//snowBall.mesh.rotation.x -= .002;
+		if (snowBall.mesh.position.y <= 1.8) {
 			jumping = false;
 			bounceValue = (Math.random() * .04) + 0.005;
 		}
 
-		heroSphere.mesh.position.y = bounceValue;
-		//heroSphere.mesh.position.x = THREE.Math.lerp(heroSphere.mesh.position.x, currentLane, 2 * clock.getDelta()); //clock.getElapsedTime());
+		snowBall.mesh.position.y = bounceValue;
+		//snowBall.mesh.position.x = THREE.Math.lerp(snowBall.mesh.position.x, currentLane, 2 * clock.getDelta()); //clock.getElapsedTime());
 		bounceValue -= gravity;
 
 		if (clock.getElapsedTime() > treeReleaseInterval) {
@@ -351,8 +352,14 @@ import ChristmasBall from './classes/ChristmasBall.js';
 			addPathTree();
 		}
 
+		particlesSnow.mesh.position.y -= 0.02;
+		if (particlesSnow.mesh.position.y < -4) {
+			particlesSnow.mesh.position.y += 10;
+		}
+
+		christmasBall.mesh.position.z += 0.05;
+
 		doTreeLogic();
-		
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
@@ -361,7 +368,9 @@ import ChristmasBall from './classes/ChristmasBall.js';
 		}
 	};
 
-	window.setInterval(function(){addWorldBalls()}, Math.random()*1000);
+	// window.setInterval(function () {
+	// 	addWorldBalls()
+	// }, Math.random() * 1000);
 
 	const handleWindowResize = () => {
 		sceneHeight = window.innerHeight;
@@ -431,25 +440,13 @@ import ChristmasBall from './classes/ChristmasBall.js';
 		createScene();
 		createLight();
 
+		createSnow();
+		addWorldBalls();
 		createTreesPool();
-		addSanta();
+		addSnowBall();
 		createWorld();
 
 		startGame();
-	};
-
-	const addWorldBalls = () => {
-		christmasBall = new ChristmasBall();
-		const numBalls = 1;
-		// const gap = 6.28 / 36;
-		for (let i = 0; i < numBalls; i++) {
-			christmasBall = new ChristmasBall();
-			christmasBall.mesh.scale.set(.02,.02,.02);
-			christmasBall.mesh.position.x = Math.random()*6.5 - 3.5;
-			christmasBall.mesh.position.y = Math.random()*2.5;
-			christmasBall.mesh.position.z = Math.random()*.5;
-			scene.add(christmasBall.mesh);
-		}
 	};
 
 	init();

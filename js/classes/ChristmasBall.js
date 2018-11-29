@@ -16,9 +16,21 @@ class ChristmasBall {
             roughness: 0.8,
             refractionRatio: 0.25
         });
-        const ball = new THREE.Mesh(geomBall, matBall);
-        ball.castShadow = true;
-        ball.receiveShadow = true;
+
+        const christmasBallsCount = 10;
+        //const christmasball = new THREE.Group();
+
+        for (let i = 0; i < christmasBallsCount; i++) {
+            var ball = new THREE.Mesh(geomBall, matBall);
+            ball.position.set(
+                (Math.random() - 0) * 40,
+                (Math.random() + 10) * 20,
+                (Math.random() - 0) * 40
+            );
+            ball.castShadow = true;
+            ball.receiveShadow = true;
+            //christmasball.add(ball);
+        }
         this.mesh.add(ball);
 
         // The top of the ball
