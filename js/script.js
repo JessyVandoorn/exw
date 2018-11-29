@@ -1,12 +1,15 @@
 import Colors from './classes/Colors.js';
 import SnowBall from './classes/SnowBall.js';
-import ChristmasBall from './classes/ChristmasBall.js'; 
-import SnowParticles from './classes/SnowParticles.js';
-{
+import ChristmasBall from './classes/ChristmasBall.js';
+import SnowParticles from './classes/SnowParticles.js'; {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
 	let sun, christmasBall, particlesSnow;
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
+
+	let circle;
+
+	let collidableMeshList = [];
 
 	let bounceValue = 0.1;
 	let gravity = 0.005;
@@ -16,7 +19,161 @@ import SnowParticles from './classes/SnowParticles.js';
 	const nBalls = 10;
 	let id;
 
+	let mic;
+	let pitch;
+	let sound;
+
 	let treesInPath, treesPool, ballsPool, world, snowBall, heroRollingSpeed, sphericalHelper, pathAngleValues;
+
+	window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+	let audioContext = null;
+	let isPlaying = false;
+	let sourceNode = null;
+	let analyser = null;
+	let theBuffer = null;
+	let DEBUGCANVAS = null;
+	let mediaStreamSource = null;
+
+	window.onload = function () {
+		audioContext = new AudioContext();
+	};
+
+	const error = () => {
+		alert('Stream generation failed.');
+	};
+
+	const getUserMedia = (dictionary, callback) => {
+		try {
+			navigator.getUserMedia =
+				navigator.getUserMedia ||
+				navigator.webkitGetUserMedia ||
+				navigator.mozGetUserMedia;
+			navigator.getUserMedia(dictionary, callback, error);
+		} catch (e) {
+			alert('getUserMedia threw exception :' + e);
+		}
+	};
+
+	const gotStream = (stream) => {
+		// Create an AudioNode from the stream.
+		mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+		// Connect it to the destination.
+		analyser = audioContext.createAnalyser();
+		analyser.fftSize = 2048;
+		mediaStreamSource.connect(analyser);
+		updatePitch();
+	};
+
+
+	const toggleLiveInput = () => {
+		if (isPlaying) {
+			//stop playing and return
+			sourceNode.stop(0);
+			sourceNode = null;
+			analyser = null;
+			isPlaying = false;
+			if (!window.cancelAnimationFrame)
+				window.cancelAnimationFrame = window.webkitCancelAnimationFrame;
+			window.cancelAnimationFrame(rafID);
+		}
+		getUserMedia({
+			"audio": {
+				"mandatory": {
+					"googEchoCancellation": "false",
+					"googAutoGainControl": "false",
+					"googNoiseSuppression": "false",
+					"googHighpassFilter": "false"
+				},
+				"optional": []
+			},
+		}, gotStream);
+	};
+
+	let ac;
+	let rafID = null;
+	let tracks = null;
+	let buflen = 1024;
+	let buf = new Float32Array(buflen);
+
+
+	let MIN_SAMPLES = 0; // will be initialized when AudioContext is created.
+	let GOOD_ENOUGH_CORRELATION = 0.9; // this is the "bar" for how close a correlation needs to be
+
+	const autoCorrelate = (buf, sampleRate) => {
+		let SIZE = buf.length;
+		let MAX_SAMPLES = Math.floor(SIZE / 2);
+		let best_offset = -1;
+		let best_correlation = 0;
+		let rms = 0;
+		let foundGoodCorrelation = false;
+		let correlations = new Array(MAX_SAMPLES);
+
+		for (let i = 0; i < SIZE; i++) {
+			let val = buf[i];
+			rms += val * val;
+		}
+		rms = Math.sqrt(rms / SIZE);
+		if (rms < 0.01) // not enough signal
+			return -1;
+
+		let lastCorrelation = 1;
+		for (let offset = MIN_SAMPLES; offset < MAX_SAMPLES; offset++) {
+			let correlation = 0;
+
+			for (let i = 0; i < MAX_SAMPLES; i++) {
+				correlation += Math.abs((buf[i]) - (buf[i + offset]));
+			}
+			correlation = 1 - (correlation / MAX_SAMPLES);
+			correlations[offset] = correlation; // store it, for the tweaking we need to do below.
+			if ((correlation > GOOD_ENOUGH_CORRELATION) && (correlation > lastCorrelation)) {
+				foundGoodCorrelation = true;
+				if (correlation > best_correlation) {
+					best_correlation = correlation;
+					best_offset = offset;
+				}
+			} else if (foundGoodCorrelation) {
+				let shift = (correlations[best_offset + 1] - correlations[best_offset - 1]) / correlations[best_offset];
+				return sampleRate / (best_offset + (8 * shift));
+			}
+			lastCorrelation = correlation;
+		}
+		if (best_correlation > 0.01) {
+			// console.log("f = " + sampleRate/best_offset + "Hz (rms: " + rms + " confidence: " + best_correlation + ")")
+			return sampleRate / best_offset;
+		}
+		return -1;
+		//	let best_frequency = sampleRate/best_offset;
+	};
+
+	const updatePitch = (time) => {
+		let cycles = new Array;
+		analyser.getFloatTimeDomainData(buf);
+		ac = autoCorrelate(buf, audioContext.sampleRate);
+
+		if (!window.requestAnimationFrame)
+			window.requestAnimationFrame = window.webkitRequestAnimationFrame;
+		rafID = window.requestAnimationFrame(updatePitch);
+	};
+
+	const loadAudio = () => {
+		const audioLoader = new THREE.AudioLoader();
+		audioLoader.load('../assets/audio/music.mp3', function (buffer) {
+			sound.setBuffer(buffer);
+			sound.setLoop(true);
+			sound.setVolume(1);
+			sound.play();
+		})
+	};
+
+	const addAudio = () => {
+		const listener = new THREE.AudioListener();
+		camera.add(listener);
+		sound = new THREE.Audio(listener);
+
+		loadAudio();
+	};
 
 	const createScene = () => {
 		treesInPath = [];
@@ -72,10 +229,39 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const addSnowBall = () => {
-		snowBall = new SnowBall();
-		jumping = false;
-		snowBall.mesh.position.y = .05;
-		scene.add(snowBall.mesh);
+		// snowBall = new SnowBall();
+		// // jumping = false;
+		// // snowBall.mesh.position.y = .05;
+		// scene.add(snowBall.mesh);
+
+
+
+
+		snowBall = new THREE.Object3D();
+
+		const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
+		const sphereMaterial = new THREE.MeshStandardMaterial({
+			color: Colors.white,
+			shading: THREE.FlatShading
+		})
+
+		const circleGeometry = new THREE.DodecahedronGeometry(0.2, 4);
+		circle = new THREE.Mesh(circleGeometry);
+		circle.name = "circle";
+		collidableMeshList.push(circle);
+		snowBall.add(circle);
+
+		// console.log(snowBall.children[0]);
+
+		const heroSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+		heroSphere.receiveShadow = true;
+		heroSphere.castShadow = true;
+		snowBall.add(heroSphere);
+
+		heroSphere.position.y = 1.8;
+		heroSphere.position.z = 4.95;
+		console.log(snowBall.position);
+		scene.add(snowBall);
 	};
 
 	const createWorld = () => {
@@ -129,7 +315,7 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const createLight = () => {
-		const ambientLight = new THREE.AmbientLight(0xffffff, 1); 
+		const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 		scene.add(ambientLight);
 		sun = new THREE.DirectionalLight(0xffffff, 1);
 		sun.position.set(12, 6, -7);
@@ -236,6 +422,10 @@ import SnowParticles from './classes/SnowParticles.js';
 		tree.add(treeTrunk);
 		tree.add(treeTop);
 
+		collidableMeshList.push(tree);
+
+		// console.log(collidableMeshList);
+
 		return tree;
 	};
 
@@ -289,38 +479,34 @@ import SnowParticles from './classes/SnowParticles.js';
 		}
 	};
 
-	const doTreeLogic = () => {
-		let oneTree;
-		let treePos = new THREE.Vector3();
-		let treesToRemove = [];
+	const update = () => {
+		for (let i = 0; i < collidableMeshList.length; i++) {
+			let object = collidableMeshList[i];
+			doTreeLogic(object);
+		}
+	}
 
-		treesInPath.forEach(function (element, index) {
-			oneTree = treesInPath[index];
-			treePos.setFromMatrixPosition(oneTree.matrixWorld);
+	const doTreeLogic = (object) => {
 
-			if (treePos.z > 6 && oneTree.visible) { //gone out of our view zone
-				treesToRemove.push(oneTree);
-			} else { //check collision
-				// if (treePos.distanceTo(snowBall.mesh.position) <= 0.6) {
-				// 	console.log("hit");
-				// 	hasCollided = true;
-				// 	lives--;
-				// 	if (lives <= 0) {
-				// 		gameOver();
-				// 	}
-				// }
-			}
-		});
+		let originPoint = circle.position.clone();
 
-		let fromWhere;
-		treesToRemove.forEach(function (element, index) {
-			oneTree = treesToRemove[index];
-			fromWhere = treesInPath.indexOf(oneTree);
-			treesInPath.splice(fromWhere, 1);
-			treesPool.push(oneTree);
-			oneTree.visible = false;
-			console.log("remove tree");
-		});
+
+		if (object.children.length > 0) {
+			object.children.forEach(child => {
+				for (let vertexIndex = 0; vertexIndex < child.geometry.vertices.length; vertexIndex++) {
+					let localVertex = child.geometry.vertices[vertexIndex].clone();
+					let globalVertex = localVertex.applyMatrix4(child.matrix);
+					let directionVector = globalVertex.sub(child.position);
+
+					let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
+					let collisionResults = ray.intersectObjects(collidableMeshList);
+					if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
+						console.log("hit");
+						//kijken welke boom + invisble zetten.
+					}
+				}
+			})
+		}
 	};
 
 	const createSnow = () => {
@@ -335,15 +521,29 @@ import SnowParticles from './classes/SnowParticles.js';
 		scene.add(christmasBall.mesh);
 	};
 
+	const updateSphere = () => {
+		if (ac == -1) {
+			// heroSphere.position.x = old.x;
+			// heroSphere.position.y = old.y;
+
+		} else if (ac < 300) {
+			snowBall.position.x -= .025;
+			// snowBall.mesh.position.y -
+		} else if (ac > 1000) {
+			snowBall.position.x += .025;
+			snowBall.position.y += .025;
+		}
+	};
+
 	const loop = () => {
 		world.rotation.x += 0.005;
 		//snowBall.mesh.rotation.x -= .002;
-		if (snowBall.mesh.position.y <= 1.8) {
+		if (snowBall.position.y <= 1.8) {
 			jumping = false;
 			bounceValue = (Math.random() * .04) + 0.005;
 		}
 
-		snowBall.mesh.position.y = bounceValue;
+		snowBall.position.y = bounceValue;
 		//snowBall.mesh.position.x = THREE.Math.lerp(snowBall.mesh.position.x, currentLane, 2 * clock.getDelta()); //clock.getElapsedTime());
 		bounceValue -= gravity;
 
@@ -352,6 +552,11 @@ import SnowParticles from './classes/SnowParticles.js';
 			addPathTree();
 		}
 
+		updateSphere();
+
+		update();
+		audioContext = new window.AudioContext();
+
 		particlesSnow.mesh.position.y -= 0.02;
 		if (particlesSnow.mesh.position.y < -4) {
 			particlesSnow.mesh.position.y += 10;
@@ -359,18 +564,12 @@ import SnowParticles from './classes/SnowParticles.js';
 
 		christmasBall.mesh.position.z += 0.05;
 
-		doTreeLogic();
-
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
 		if (lives <= 0) {
 			cancelAnimationFrame(id);
 		}
 	};
-
-	// window.setInterval(function () {
-	// 	addWorldBalls()
-	// }, Math.random() * 1000);
 
 	const handleWindowResize = () => {
 		sceneHeight = window.innerHeight;
@@ -447,6 +646,10 @@ import SnowParticles from './classes/SnowParticles.js';
 		createWorld();
 
 		startGame();
+
+		addAudio();
+
+		toggleLiveInput();
 	};
 
 	init();
