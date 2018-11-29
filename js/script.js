@@ -153,13 +153,13 @@ import Colors from './classes/Colors.js';
 		analyser.getFloatTimeDomainData(buf);
 		ac = autoCorrelate(buf, audioContext.sampleRate);
 
-		if (ac == -1) {
-			console.log('geen toonhoogtes');
-		} else if (ac < 300) {
-			console.log('lage toonhoogtes');
-		} else if (ac > 300) {
-			console.log('hoge toonhoogtes');
-		}
+		// if (ac == -1) {
+		// 	console.log('geen toonhoogtes');
+		// } else if (ac < 300) {
+		// 	console.log('lage toonhoogtes');
+		// } else if (ac > 300) {
+		// 	console.log('hoge toonhoogtes');
+		// }
 
 		if (!window.requestAnimationFrame)
 			window.requestAnimationFrame = window.webkitRequestAnimationFrame;
@@ -236,13 +236,13 @@ import Colors from './classes/Colors.js';
 
 		heroSphere.position.y = 1.8;
 		heroSphere.position.z = 4.8;
-		currentLane = middleLane;
-		heroSphere.position.x = currentLane;
+		// currentLane = middleLane;
+		// heroSphere.position.x = currentLane;
 
-		old = {
-			x: heroSphere.position.x,
-			y: heroSphere.position.y
-		}
+		// old = {
+		// 	x: heroSphere.position.x,
+		// 	y: heroSphere.position.y
+		// }
 	};
 
 	const createWorld = () => {
@@ -469,7 +469,9 @@ import Colors from './classes/Colors.js';
 				treesToRemove.push(oneTree);
 			} else { //check collision
 				if (treePos.distanceTo(heroSphere.position) <= 0.6) {
-					console.log(treesInPath);
+					//console.log(treesInPath);
+					console.log(heroSphere.position);
+					console.log(treePos);
 					hasCollided = true;
 					treesInPath[index].visible = false;
 				} else {
