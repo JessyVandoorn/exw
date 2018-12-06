@@ -3,11 +3,11 @@ import SnowBall from './classes/SnowBall.js';
 import ChristmasBall from './classes/ChristmasBall.js';
 import SnowParticles from './classes/SnowParticles.js'; {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
-	let sun, christmasBall, particlesSnow;
+	let sun, christmasBall, particlesSnow, heroSphere;
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
-	let circle;
+	let circle, boxTree;
 
 	let collidableMeshList = [];
 
@@ -234,9 +234,6 @@ import SnowParticles from './classes/SnowParticles.js'; {
 		// // snowBall.mesh.position.y = .05;
 		// scene.add(snowBall.mesh);
 
-
-
-
 		snowBall = new THREE.Object3D();
 
 		const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
@@ -245,23 +242,23 @@ import SnowParticles from './classes/SnowParticles.js'; {
 			shading: THREE.FlatShading
 		})
 
-		const circleGeometry = new THREE.DodecahedronGeometry(0.2, 4);
-		circle = new THREE.Mesh(circleGeometry);
+		const circleGeometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+		circle = new THREE.Mesh(circleGeometry, sphereMaterial);
 		circle.name = "circle";
-		collidableMeshList.push(circle);
+		circle.position.y = 1.8;
+		circle.position.z = 4.95;
 		snowBall.add(circle);
+		//collidableMeshList.push(circle);
 
-		// console.log(snowBall.children[0]);
-
-		const heroSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+		heroSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 		heroSphere.receiveShadow = true;
 		heroSphere.castShadow = true;
 		snowBall.add(heroSphere);
 
 		heroSphere.position.y = 1.8;
 		heroSphere.position.z = 4.95;
-		console.log(snowBall.position);
 		scene.add(snowBall);
+
 	};
 
 	const createWorld = () => {
@@ -418,13 +415,17 @@ import SnowParticles from './classes/SnowParticles.js'; {
 		const treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
 		treeTrunk.position.y = 0.25;
 
+		const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+		boxTree = new THREE.Mesh(boxGeometry);
+		boxTree.name = "treeBox";
+		boxTree.position.y = 0.25;
+		collidableMeshList.push(boxTree);
+
 		const tree = new THREE.Object3D();
+		tree.name = "tree";
 		tree.add(treeTrunk);
 		tree.add(treeTop);
-
-		collidableMeshList.push(tree);
-
-		// console.log(collidableMeshList);
+		tree.add(boxTree);
 
 		return tree;
 	};
@@ -479,34 +480,25 @@ import SnowParticles from './classes/SnowParticles.js'; {
 		}
 	};
 
-	const update = () => {
-		for (let i = 0; i < collidableMeshList.length; i++) {
-			let object = collidableMeshList[i];
-			doTreeLogic(object);
-		}
-	}
-
-	const doTreeLogic = (object) => {
-
+	const doTreeLogic = () => {
 		let originPoint = circle.position.clone();
 
+		for (let vertexIndex = 0; vertexIndex < circle.geometry.vertices.length; vertexIndex++) {
+			let localVertex = circle.geometry.vertices[vertexIndex].clone();
+			let globalVertex = localVertex.applyMatrix4(circle.matrix);
+			let directionVector = globalVertex.sub(circle.position);
 
-		if (object.children.length > 0) {
-			object.children.forEach(child => {
-				for (let vertexIndex = 0; vertexIndex < child.geometry.vertices.length; vertexIndex++) {
-					let localVertex = child.geometry.vertices[vertexIndex].clone();
-					let globalVertex = localVertex.applyMatrix4(child.matrix);
-					let directionVector = globalVertex.sub(child.position);
-
-					let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
-					let collisionResults = ray.intersectObjects(collidableMeshList);
-					if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-						console.log("hit");
-						//kijken welke boom + invisble zetten.
-					}
-				}
-			})
-		}
+			let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
+			let collisionResults = ray.intersectObjects(collidableMeshList);
+			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()){
+				console.log(" Hit ");
+				collisionResults[0].object.parent.visible = false;
+				//lives--;
+				// if(lives <= 0){
+				// 	gameOver();
+				// }
+			} 
+		} 
 	};
 
 	const createSnow = () => {
@@ -554,7 +546,8 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 		updateSphere();
 
-		update();
+		//update();
+		doTreeLogic();
 		audioContext = new window.AudioContext();
 
 		particlesSnow.mesh.position.y -= 0.02;
