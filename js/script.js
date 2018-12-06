@@ -9,6 +9,10 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 	let circle, boxTree;
 
+	let isInitialized = false;
+
+	let fieldLives;
+
 	let collidableMeshList = [];
 
 	let bounceValue = 0.1;
@@ -229,11 +233,6 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	};
 
 	const addSnowBall = () => {
-		// snowBall = new SnowBall();
-		// // jumping = false;
-		// // snowBall.mesh.position.y = .05;
-		// scene.add(snowBall.mesh);
-
 		snowBall = new THREE.Object3D();
 
 		const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
@@ -243,12 +242,12 @@ import SnowParticles from './classes/SnowParticles.js'; {
 		})
 
 		const circleGeometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-		circle = new THREE.Mesh(circleGeometry, sphereMaterial);
+		circle = new THREE.Mesh(circleGeometry);
 		circle.name = "circle";
+		circle.material.visible = false;
 		circle.position.y = 1.8;
 		circle.position.z = 4.95;
 		snowBall.add(circle);
-		//collidableMeshList.push(circle);
 
 		heroSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 		heroSphere.receiveShadow = true;
@@ -418,6 +417,7 @@ import SnowParticles from './classes/SnowParticles.js'; {
 		const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 		boxTree = new THREE.Mesh(boxGeometry);
 		boxTree.name = "treeBox";
+		boxTree.material.visible = false;
 		boxTree.position.y = 0.25;
 		collidableMeshList.push(boxTree);
 
@@ -490,15 +490,16 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 			let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
 			let collisionResults = ray.intersectObjects(collidableMeshList);
-			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()){
+			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
 				console.log(" Hit ");
 				collisionResults[0].object.parent.visible = false;
-				//lives--;
-				// if(lives <= 0){
-				// 	gameOver();
-				// }
-			} 
-		} 
+				lives--;
+				//fieldLives = lives;
+				if(lives <= 0){
+					gameOver();
+				}
+			}
+		}
 	};
 
 	const createSnow = () => {
@@ -515,28 +516,30 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 	const updateSphere = () => {
 		if (ac == -1) {
-			// heroSphere.position.x = old.x;
-			// heroSphere.position.y = old.y;
-
+			isInitialized = true;
 		} else if (ac < 300) {
 			snowBall.position.x -= .025;
-			// snowBall.mesh.position.y -
+			if (snowBall.position.x < window.width) {
+				snowBall.position.x += .50;
+			}
 		} else if (ac > 1000) {
+			if (snowBall.position.x > window.width) {
+				snowBall.position.x -= .50;
+			}
 			snowBall.position.x += .025;
 			snowBall.position.y += .025;
 		}
+		
 	};
 
 	const loop = () => {
 		world.rotation.x += 0.005;
-		//snowBall.mesh.rotation.x -= .002;
 		if (snowBall.position.y <= 1.8) {
 			jumping = false;
 			bounceValue = (Math.random() * .04) + 0.005;
 		}
 
 		snowBall.position.y = bounceValue;
-		//snowBall.mesh.position.x = THREE.Math.lerp(snowBall.mesh.position.x, currentLane, 2 * clock.getDelta()); //clock.getElapsedTime());
 		bounceValue -= gravity;
 
 		if (clock.getElapsedTime() > treeReleaseInterval) {
@@ -546,8 +549,10 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 		updateSphere();
 
-		//update();
-		doTreeLogic();
+		if (isInitialized) {
+			doTreeLogic();
+		}
+
 		audioContext = new window.AudioContext();
 
 		particlesSnow.mesh.position.y -= 0.02;
@@ -629,6 +634,10 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	};
 
 	const init = () => {
+		// fieldLives = document.querySelector(".value");
+		// fieldLives.innerHTML = lives;
+		// console.log(fieldLives);
+
 		createScene();
 		createLight();
 

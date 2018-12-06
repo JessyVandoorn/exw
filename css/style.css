@@ -64,3 +64,8 @@ body {
     background-color: white;
     color: #000;
 }
+
+/* .lives_value{
+    display:flex;
+    flex-direction: row;
+} */
