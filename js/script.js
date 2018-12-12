@@ -1,7 +1,7 @@
 import Colors from './classes/Colors.js';
 import SnowBall from './classes/SnowBall.js';
 import ChristmasBall from './classes/ChristmasBall.js';
-import SnowParticles from './classes/SnowParticles.js'; 
+import SnowParticles from './classes/SnowParticles.js';
 
 {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
@@ -150,8 +150,12 @@ import SnowParticles from './classes/SnowParticles.js';
 
 	const updatePitch = (time) => {
 		let cycles = new Array;
+		//if set of, snowBall is not moving anymore
 		analyser.getFloatTimeDomainData(buf);
+		//sampleRate is set by the machine on 44.1kHz
 		ac = autoCorrelate(buf, audioContext.sampleRate);
+
+		console.log("5: ", ac);
 
 		if (!window.requestAnimationFrame)
 			window.requestAnimationFrame = window.webkitRequestAnimationFrame;
@@ -159,16 +163,18 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const loadAudio = () => {
+		//inladen kerstmuziek
 		const audioLoader = new THREE.AudioLoader();
 		audioLoader.load('../assets/audio/music.mp3', function (buffer) {
 			sound.setBuffer(buffer);
 			sound.setLoop(true);
-			sound.setVolume(1);
+			sound.setVolume(0.5);
 			sound.play();
 		})
 	};
 
 	const addAudio = () => {
+		//toevoegen kerstmuziek
 		const listener = new THREE.AudioListener();
 		camera.add(listener);
 		sound = new THREE.Audio(listener);
@@ -467,8 +473,9 @@ import SnowParticles from './classes/SnowParticles.js';
 			let collisionResults = ray.intersectObjects(collidableMeshList);
 			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
 				console.log(" Hit ");
-				collisionResults[0].object.parent.visible = false;
-				lives--;
+				
+					collisionResults[0].object.parent.visible = false;
+					lives--;
 			}
 		}
 	};
@@ -482,13 +489,13 @@ import SnowParticles from './classes/SnowParticles.js';
 		christmasBall = new ChristmasBall();
 		christmasBall.mesh.scale.set(.01, .01, .01);
 		christmasBall.mesh.position.x = Math.random() * 6.5 - 3.5;
+		christmasBall.mesh.name = "kerstBal";
 		scene.add(christmasBall.mesh);
 	};
 
 	const updateSphere = () => {
 
-		if (ac == -1) {
-		} else if (ac < 300) {
+		if (ac == -1) {} else if (ac < 300) {
 			snowBall.mesh.position.x -= .025;
 			if (snowBall.mesh.position.x < window.width) {
 				snowBall.mesh.position.x += .50;
@@ -571,7 +578,7 @@ import SnowParticles from './classes/SnowParticles.js';
 		const containerbody = document.querySelector(`body`);
 		containerbody.appendChild(containerdiv);
 
-		
+
 		fieldLives.classList.remove(`hide`);
 
 		document.addEventListener('keypress', (event) => {
