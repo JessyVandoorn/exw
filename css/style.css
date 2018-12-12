@@ -43,10 +43,6 @@ body {
     font-weight: 700;
 }
 
-.hide {
-    display: none;
-}
-
 .startbtn {
     color: white;
     text-transform: uppercase;
@@ -65,7 +61,18 @@ body {
     color: #000;
 }
 
-/* .lives_value{
+.lives_value{
     display:flex;
     flex-direction: row;
-} */
+    position: fixed;
+    width: 5rem;
+    justify-content: space-between;
+    background-color: white;
+    padding: .5rem;
+    margin: .5rem;
+    border-radius: .5rem;
+}
+
+.hide {
+    display: none;
+}

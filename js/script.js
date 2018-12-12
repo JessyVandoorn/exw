@@ -1,17 +1,17 @@
 import Colors from './classes/Colors.js';
 import SnowBall from './classes/SnowBall.js';
 import ChristmasBall from './classes/ChristmasBall.js';
-import SnowParticles from './classes/SnowParticles.js'; {
+import SnowParticles from './classes/SnowParticles.js'; 
+
+{
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
 	let sun, christmasBall, particlesSnow, heroSphere;
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
-	let circle, boxTree;
+	let circle, boxTree, id, fieldLives;
 
 	let isInitialized = false;
-
-	let fieldLives;
 
 	let collidableMeshList = [];
 
@@ -19,14 +19,10 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	let gravity = 0.005;
 	let treeReleaseInterval = 0.5;
 
-	let id;
-
 	let lives = 3;
 	const nBalls = 10;
 
-	let mic;
-	let pitch;
-	let sound;
+	let mic, pitch, sound;
 
 	let treesInPath, treesPool, ballsPool, world, snowBall, heroRollingSpeed, sphericalHelper, pathAngleValues;
 
@@ -236,7 +232,6 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	const addSnowBall = () => {
 		snowBall = new SnowBall();
 		scene.add(snowBall.mesh);
-
 	};
 
 	const createWorld = () => {
@@ -474,12 +469,6 @@ import SnowParticles from './classes/SnowParticles.js'; {
 				console.log(" Hit ");
 				collisionResults[0].object.parent.visible = false;
 				lives--;
-				//fieldLives = lives;
-				// if (lives <= 0) {
-				// 	gameOver();
-				// }
-
-				gameOver();
 			}
 		}
 	};
@@ -544,13 +533,13 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 		christmasBall.mesh.position.z += 0.05;
 
+		fieldLives = lives;
+
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
-		console.log(lives);
 		if (lives <= 0) {
 			cancelAnimationFrame(id);
 			gameOver();
-			console.log(lives);
 		}
 	};
 
@@ -563,7 +552,6 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	};
 
 	const startGame = () => {
-		console.log(lives);
 		if (document.getElementById('container')) {
 			document.getElementById('container').remove();
 		}
@@ -582,6 +570,9 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 		const containerbody = document.querySelector(`body`);
 		containerbody.appendChild(containerdiv);
+
+		
+		fieldLives.classList.remove(`hide`);
 
 		document.addEventListener('keypress', (event) => {
 			if (event.keyCode === 32) {
@@ -605,10 +596,13 @@ import SnowParticles from './classes/SnowParticles.js'; {
 		const element = document.querySelector(`h1`);
 		element.textContent = 'Game over';
 
-		const startbtn = document.querySelector('p');
+		const startbtn = document.querySelector('.description');
 		startbtn.textContent = 'Play again';
 		startbtn.classList.add('startbtn');
 		startbtn.addEventListener('click', handlePlayAgain);
+
+		fieldLives = document.querySelector(".lives_value");
+		fieldLives.classList.add(`hide`);
 
 		const containerInfo = document.querySelector('#container');
 		containerInfo.classList.remove('hide');
@@ -616,14 +610,12 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 	const handlePlayAgain = e => {
 		e.currentTarget;
-		//startGame();
 		location.reload();
 	};
 
 	const init = () => {
-		// fieldLives = document.querySelector(".value");
-		// fieldLives.innerHTML = lives;
-		// console.log(fieldLives);
+		fieldLives = document.querySelector(".value");
+		fieldLives.innerHTML = lives;
 
 		createScene();
 		createLight();
