@@ -19,9 +19,10 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	let gravity = 0.005;
 	let treeReleaseInterval = 0.5;
 
+	let id;
+
 	let lives = 3;
 	const nBalls = 10;
-	let id;
 
 	let mic;
 	let pitch;
@@ -233,30 +234,8 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	};
 
 	const addSnowBall = () => {
-		snowBall = new THREE.Object3D();
-
-		const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
-		const sphereMaterial = new THREE.MeshStandardMaterial({
-			color: Colors.white,
-			shading: THREE.FlatShading
-		})
-
-		const circleGeometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-		circle = new THREE.Mesh(circleGeometry);
-		circle.name = "circle";
-		circle.material.visible = false;
-		circle.position.y = 1.8;
-		circle.position.z = 4.95;
-		snowBall.add(circle);
-
-		heroSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-		heroSphere.receiveShadow = true;
-		heroSphere.castShadow = true;
-		snowBall.add(heroSphere);
-
-		heroSphere.position.y = 1.8;
-		heroSphere.position.z = 4.95;
-		scene.add(snowBall);
+		snowBall = new SnowBall();
+		scene.add(snowBall.mesh);
 
 	};
 
@@ -481,6 +460,7 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	};
 
 	const doTreeLogic = () => {
+		circle = snowBall.mesh.children[1];
 		let originPoint = circle.position.clone();
 
 		for (let vertexIndex = 0; vertexIndex < circle.geometry.vertices.length; vertexIndex++) {
@@ -495,9 +475,11 @@ import SnowParticles from './classes/SnowParticles.js'; {
 				collisionResults[0].object.parent.visible = false;
 				lives--;
 				//fieldLives = lives;
-				if(lives <= 0){
-					gameOver();
-				}
+				// if (lives <= 0) {
+				// 	gameOver();
+				// }
+
+				gameOver();
 			}
 		}
 	};
@@ -515,31 +497,31 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	};
 
 	const updateSphere = () => {
+
 		if (ac == -1) {
-			isInitialized = true;
 		} else if (ac < 300) {
-			snowBall.position.x -= .025;
-			if (snowBall.position.x < window.width) {
-				snowBall.position.x += .50;
+			snowBall.mesh.position.x -= .025;
+			if (snowBall.mesh.position.x < window.width) {
+				snowBall.mesh.position.x += .50;
 			}
 		} else if (ac > 1000) {
-			if (snowBall.position.x > window.width) {
-				snowBall.position.x -= .50;
+			if (snowBall.mesh.position.x > window.width) {
+				snowBall.mesh.position.x -= .50;
 			}
-			snowBall.position.x += .025;
-			snowBall.position.y += .025;
+			snowBall.mesh.position.x += .025;
+			snowBall.mesh.position.y += .025;
 		}
-		
+
 	};
 
 	const loop = () => {
 		world.rotation.x += 0.005;
-		if (snowBall.position.y <= 1.8) {
+		if (snowBall.mesh.position.y <= 1.8) {
 			jumping = false;
 			bounceValue = (Math.random() * .04) + 0.005;
 		}
 
-		snowBall.position.y = bounceValue;
+		snowBall.mesh.position.y = bounceValue;
 		bounceValue -= gravity;
 
 		if (clock.getElapsedTime() > treeReleaseInterval) {
@@ -564,8 +546,11 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
+		console.log(lives);
 		if (lives <= 0) {
 			cancelAnimationFrame(id);
+			gameOver();
+			console.log(lives);
 		}
 	};
 
@@ -578,6 +563,7 @@ import SnowParticles from './classes/SnowParticles.js'; {
 	};
 
 	const startGame = () => {
+		console.log(lives);
 		if (document.getElementById('container')) {
 			document.getElementById('container').remove();
 		}
@@ -604,13 +590,13 @@ import SnowParticles from './classes/SnowParticles.js'; {
 				container = document.getElementById('world');
 				lives = 3;
 				container.appendChild(renderer.domElement);
-			} else {
-				console.log('error');
+				isInitialized = true;
 			}
 		})
 	};
 
 	const gameOver = () => {
+
 		const container = document.getElementById(`world`);
 		if (container.contains(document.querySelector('canvas'))) {
 			container.removeChild(document.querySelector(`canvas`));
@@ -630,7 +616,8 @@ import SnowParticles from './classes/SnowParticles.js'; {
 
 	const handlePlayAgain = e => {
 		e.currentTarget;
-		startGame();
+		//startGame();
+		location.reload();
 	};
 
 	const init = () => {

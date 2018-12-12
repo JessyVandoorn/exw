@@ -15,6 +15,14 @@ class SnowBall {
         heroSphere.castShadow = true;
         this.mesh.add(heroSphere);
 
+        const circleGeometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+		const circle = new THREE.Mesh(circleGeometry);
+		circle.name = "circle";
+		circle.material.visible = false;
+		circle.position.y = 1.8;
+		circle.position.z = 4.95;
+		this.mesh.add(circle);
+
         heroSphere.position.y = 1.8;
         heroSphere.position.z = 4.95;
     }
