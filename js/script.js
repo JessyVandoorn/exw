@@ -23,7 +23,7 @@ import SnowParticles from './classes/SnowParticles.js';
 	let treeReleaseInterval = 0.5;
 
 	let lives = 5;
-	const nBalls = 10;
+	const nBalls = 20;
 
 	let mic, pitch, sound;
 
@@ -245,20 +245,22 @@ import SnowParticles from './classes/SnowParticles.js';
 	const createWorld = () => {
 		//class tot en met rotation 
 		//world = new World();
-		const sides = 40;
-		const tiers = 40;
-		const sphereGeometry = new THREE.SphereGeometry(26, sides, tiers);
-		const sphereMaterial = new THREE.MeshStandardMaterial({
-			color: Colors.white
-		})
+		const geom = new THREE.SphereGeometry(26,40,40);
 
-		world = new THREE.Mesh(sphereGeometry, sphereMaterial);
-		world.receiveShadow = true;
-		world.castShadow = false;
-		world.rotation.z = -Math.PI / 2;
-		scene.add(world);
-		world.position.y = -24;
-		world.position.z = 2;
+       geom.applyMatrix(new THREE.Matrix4().makeRotationZ(-Math.PI/2));
+       
+       const mat = new THREE.MeshStandardMaterial({
+           color: Colors.white,
+           flatShading: true
+       });
+
+       world = new THREE.Mesh(geom, mat);
+       world.receiveShadow = true;
+	   world.castShadow = false;
+	   world.rotation.z = -Math.PI / 2;
+	   scene.add(world);
+       world.position.y = -24;
+	   world.position.z = 2;
 		addWorldTrees();
 	};
 
@@ -331,9 +333,9 @@ import SnowParticles from './classes/SnowParticles.js';
 	const createTree = () => {
 		let sides = 8;
 		let tiers = 6;
-		let scalarMultiplier = (Math.random() * (0.25 - 0.1)) + 0.05;
+		// let scalarMultiplier = (Math.random() * (0.25 - 0.1)) + 0.05;
 		let midPointVector = new THREE.Vector3();
-		let vertexVector = new THREE.Vector3();
+		// let vertexVector = new THREE.Vector3();
 		let treeGeometry = new THREE.ConeGeometry(0.5, 1, sides, tiers);
 		let treeMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.treeMaterial,
@@ -345,12 +347,12 @@ import SnowParticles from './classes/SnowParticles.js';
 		let currentTier = 0;
 		let vertexIndex;
 
-		blowUpTree(treeGeometry.vertices, sides, 0, scalarMultiplier);
-		tightenTree(treeGeometry.vertices, sides, 1);
-		blowUpTree(treeGeometry.vertices, sides, 2, scalarMultiplier * 1.1, true);
-		tightenTree(treeGeometry.vertices, sides, 3);
-		blowUpTree(treeGeometry.vertices, sides, 4, scalarMultiplier * 1.2);
-		tightenTree(treeGeometry.vertices, sides, 5);
+		// blowUpTree(treeGeometry.vertices, sides, 0, scalarMultiplier);
+		// tightenTree(treeGeometry.vertices, sides, 1);
+		// blowUpTree(treeGeometry.vertices, sides, 2, scalarMultiplier * 1.1, true);
+		// tightenTree(treeGeometry.vertices, sides, 3);
+		// blowUpTree(treeGeometry.vertices, sides, 4, scalarMultiplier * 1.2);
+		// tightenTree(treeGeometry.vertices, sides, 5);
 
 		const treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
 		treeTop.castShadow = true;
@@ -383,55 +385,55 @@ import SnowParticles from './classes/SnowParticles.js';
 		return tree;
 	};
 
-	const blowUpTree = (vertices, sides, currentTier, scalarMultiplier, odd) => {
-		let vertexIndex;
-		let vertexVector = new THREE.Vector3();
-		let midPointVector = vertices[0].clone();
-		let offset;
+	// const blowUpTree = (vertices, sides, currentTier, scalarMultiplier, odd) => {
+	// 	let vertexIndex;
+	// 	let vertexVector = new THREE.Vector3();
+	// 	let midPointVector = vertices[0].clone();
+	// 	let offset;
 
-		for (let i = 0; i < sides; i++) {
-			vertexIndex = (currentTier * sides) + 1;
-			vertexVector = vertices[i + vertexIndex].clone();
-			midPointVector.y = vertexVector.y;
-			offset = vertexVector.sub(midPointVector);
+	// 	for (let i = 0; i < sides; i++) {
+	// 		vertexIndex = (currentTier * sides) + 1;
+	// 		vertexVector = vertices[i + vertexIndex].clone();
+	// 		midPointVector.y = vertexVector.y;
+	// 		offset = vertexVector.sub(midPointVector);
 
-			if (odd) {
-				if (i % 2 === 0) {
-					offset.normalize().multiplyScalar(scalarMultiplier / 6);
-					vertices[i + vertexIndex].add(offset);
-				} else {
-					offset.normalize().multiplyScalar(scalarMultiplier);
-					vertices[i + vertexIndex].add(offset);
-					vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
-				}
-			} else {
-				if (i % 2 !== 0) {
-					offset.normalize().multiplyScalar(scalarMultiplier / 6);
-					vertices[i + vertexIndex].add(offset);
-				} else {
-					offset.normalize().multiplyScalar(scalarMultiplier);
-					vertices[i + vertexIndex].add(offset);
-					vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
-				}
-			}
-		}
-	};
+	// 		if (odd) {
+	// 			if (i % 2 === 0) {
+	// 				offset.normalize().multiplyScalar(scalarMultiplier / 6);
+	// 				vertices[i + vertexIndex].add(offset);
+	// 			} else {
+	// 				offset.normalize().multiplyScalar(scalarMultiplier);
+	// 				vertices[i + vertexIndex].add(offset);
+	// 				vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
+	// 			}
+	// 		} else {
+	// 			if (i % 2 !== 0) {
+	// 				offset.normalize().multiplyScalar(scalarMultiplier / 6);
+	// 				vertices[i + vertexIndex].add(offset);
+	// 			} else {
+	// 				offset.normalize().multiplyScalar(scalarMultiplier);
+	// 				vertices[i + vertexIndex].add(offset);
+	// 				vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
+	// 			}
+	// 		}
+	// 	}
+	// };
 
-	const tightenTree = (vertices, sides, currentTier) => {
-		let vertexIndex;
-		let vertexVector = new THREE.Vector3();
-		let midPointVector = vertices[0].clone();
-		let offset;
+	// const tightenTree = (vertices, sides, currentTier) => {
+	// 	let vertexIndex;
+	// 	let vertexVector = new THREE.Vector3();
+	// 	let midPointVector = vertices[0].clone();
+	// 	let offset;
 
-		for (let i = 0; i < sides; i++) {
-			vertexIndex = (currentTier * sides) + 1;
-			vertexVector = vertices[i + vertexIndex].clone();
-			midPointVector.y = vertexVector.y;
-			offset = vertexVector.sub(midPointVector);
-			offset.normalize().multiplyScalar(0.06);
-			vertices[i + vertexIndex].sub(offset);
-		}
-	};
+	// 	for (let i = 0; i < sides; i++) {
+	// 		vertexIndex = (currentTier * sides) + 1;
+	// 		vertexVector = vertices[i + vertexIndex].clone();
+	// 		midPointVector.y = vertexVector.y;
+	// 		offset = vertexVector.sub(midPointVector);
+	// 		offset.normalize().multiplyScalar(0.06);
+	// 		vertices[i + vertexIndex].sub(offset);
+	// 	}
+	// };
 
 	const doTreeLogic = () => {
 		circle = snowBall.mesh.children[1];
