@@ -9,7 +9,9 @@ import SnowParticles from './classes/SnowParticles.js';
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
-	let circle, boxTree, id, fieldLives;
+	let circle, boxTree, id;
+
+	let fieldLives = document.querySelector(`.value`);
 
 	let isInitialized = false;
 
@@ -17,9 +19,10 @@ import SnowParticles from './classes/SnowParticles.js';
 
 	let bounceValue = 0.1;
 	let gravity = 0.005;
+	// kijken of hoger meer bomen geeft in middenvak
 	let treeReleaseInterval = 0.5;
 
-	let lives = 3;
+	let lives = 5;
 	const nBalls = 10;
 
 	let mic, pitch, sound;
@@ -155,8 +158,6 @@ import SnowParticles from './classes/SnowParticles.js';
 		//sampleRate is set by the machine on 44.1kHz
 		ac = autoCorrelate(buf, audioContext.sampleRate);
 
-		console.log("5: ", ac);
-
 		if (!window.requestAnimationFrame)
 			window.requestAnimationFrame = window.webkitRequestAnimationFrame;
 		rafID = window.requestAnimationFrame(updatePitch);
@@ -223,11 +224,12 @@ import SnowParticles from './classes/SnowParticles.js';
 		camera.position.z = 6.5;
 		camera.position.y = 2.5;
 
+
 		window.addEventListener('resize', handleWindowResize, false);
 	};
 
 	const createTreesPool = () => {
-		const maxTreesInPool = 10;
+		const maxTreesInPool = 20;
 		let newTree;
 		for (let i = 0; i < maxTreesInPool; i++) {
 			newTree = createTree();
@@ -241,44 +243,14 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const createWorld = () => {
+		//class tot en met rotation 
+		//world = new World();
 		const sides = 40;
 		const tiers = 40;
 		const sphereGeometry = new THREE.SphereGeometry(26, sides, tiers);
 		const sphereMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.white
 		})
-
-		let vertexIndex;
-		let vertexVector = new THREE.Vector3();
-		let nextVertexVector = new THREE.Vector3();
-		let firstVertexVector = new THREE.Vector3();
-		let offset = new THREE.Vector3();
-		let currentTier = 1;
-		let lerpValue = 0.5;
-		let heightValue;
-		let maxHeight = 0.07;
-
-		for (let j = 1; j < tiers - 2; j++) {
-			currentTier = j;
-			for (let i = 0; i < sides; i++) {
-				vertexIndex = (currentTier * sides) + 1;
-				vertexVector = sphereGeometry.vertices[i + vertexIndex].clone();
-				if (j % 2 !== 0) {
-					if (i == 0) {
-						firstVertexVector = vertexVector.clone();
-					}
-					nextVertexVector = sphereGeometry.vertices[i + vertexIndex + 1].clone();
-					if (i == sides - 1) {
-						nextVertexVector = firstVertexVector;
-					}
-					lerpValue = (Math.random() * (0.75 - 0.25)) + 0.25;
-					vertexVector.lerp(nextVertexVector, lerpValue);
-				}
-				heightValue = (Math.random() * maxHeight) - (maxHeight / 2);
-				offset = vertexVector.clone().normalize().multiplyScalar(heightValue);
-				sphereGeometry.vertices[i + vertexIndex] = (vertexVector.add(offset));
-			}
-		}
 
 		world = new THREE.Mesh(sphereGeometry, sphereMaterial);
 		world.receiveShadow = true;
@@ -317,8 +289,8 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const addWorldTrees = () => {
-		const numTrees = 36;
-		const gap = 6.28 / 36;
+		const numTrees = 20;
+		const gap = 6.28 / 20;
 		for (let i = 0; i < numTrees; i++) {
 			addTree(false, i * gap, true);
 			addTree(false, i * gap, false);
@@ -347,6 +319,7 @@ import SnowParticles from './classes/SnowParticles.js';
 		}
 
 		newTree.position.setFromSpherical(sphericalHelper);
+		// wordl.mesh.position
 		let rollingGroundVector = world.position.clone().normalize();
 		let treeVector = newTree.position.clone().normalize();
 		newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
@@ -472,10 +445,15 @@ import SnowParticles from './classes/SnowParticles.js';
 			let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
 			let collisionResults = ray.intersectObjects(collidableMeshList);
 			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-				console.log(" Hit ");
-				
+
+				if (collisionResults[0].object.name == "kerstBal") {
+					console.log(" Hit ");
+					console.log("kerstbal");
+					lives++;
+				} else if (collisionResults[0].object.name == "treeBox") {
 					collisionResults[0].object.parent.visible = false;
-					lives--;
+					// lives--;
+				}
 			}
 		}
 	};
@@ -489,6 +467,7 @@ import SnowParticles from './classes/SnowParticles.js';
 		christmasBall = new ChristmasBall();
 		christmasBall.mesh.scale.set(.01, .01, .01);
 		christmasBall.mesh.position.x = Math.random() * 6.5 - 3.5;
+		collidableMeshList.push(christmasBall.mesh);
 		christmasBall.mesh.name = "kerstBal";
 		scene.add(christmasBall.mesh);
 	};
@@ -497,11 +476,12 @@ import SnowParticles from './classes/SnowParticles.js';
 
 		if (ac == -1) {} else if (ac < 300) {
 			snowBall.mesh.position.x -= .025;
-			if (snowBall.mesh.position.x < window.width) {
+			if (snowBall.mesh.position.x < container.width-50) {
 				snowBall.mesh.position.x += .50;
 			}
 		} else if (ac > 1000) {
-			if (snowBall.mesh.position.x > window.width) {
+			if (snowBall.mesh.position.x > window.width-50) {
+				console.log(window.width);
 				snowBall.mesh.position.x -= .50;
 			}
 			snowBall.mesh.position.x += .025;
@@ -523,6 +503,7 @@ import SnowParticles from './classes/SnowParticles.js';
 		if (clock.getElapsedTime() > treeReleaseInterval) {
 			clock.start();
 			addPathTree();
+			addWorldBalls();
 		}
 
 		updateSphere();
@@ -531,6 +512,8 @@ import SnowParticles from './classes/SnowParticles.js';
 			doTreeLogic();
 		}
 
+		fieldLives.innerHTML = lives;
+
 		audioContext = new window.AudioContext();
 
 		particlesSnow.mesh.position.y -= 0.02;
@@ -538,9 +521,9 @@ import SnowParticles from './classes/SnowParticles.js';
 			particlesSnow.mesh.position.y += 10;
 		}
 
-		christmasBall.mesh.position.z += 0.05;
+		christmasBall.mesh.position.z += 0.25;
 
-		fieldLives = lives;
+		// fieldLives.innerHTML = lives;
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
@@ -578,15 +561,16 @@ import SnowParticles from './classes/SnowParticles.js';
 		const containerbody = document.querySelector(`body`);
 		containerbody.appendChild(containerdiv);
 
-
-		fieldLives.classList.remove(`hide`);
+		const fieldLives = document.querySelector('.lives_value');
+		fieldLives.classList.add(`hide`);
 
 		document.addEventListener('keypress', (event) => {
 			if (event.keyCode === 32) {
 				loop();
 				containerdiv.classList.add(`hide`);
 				container = document.getElementById('world');
-				lives = 3;
+				fieldLives.classList.remove(`hide`);
+				lives = 5;
 				container.appendChild(renderer.domElement);
 				isInitialized = true;
 			}
@@ -621,9 +605,6 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const init = () => {
-		fieldLives = document.querySelector(".value");
-		fieldLives.innerHTML = lives;
-
 		createScene();
 		createLight();
 

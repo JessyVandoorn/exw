@@ -31,6 +31,13 @@ class ChristmasBall {
             ball.receiveShadow = true;
             //christmasball.add(ball);
         }
+
+        const ballGeometry = new THREE.BoxGeometry(16,18,18);
+        const kerstbal = new THREE.Mesh(ballGeometry);
+        kerstbal.name = "kerstBal";
+
+        this.mesh.add(kerstbal);
+
         this.mesh.add(ball);
 
         // The top of the ball
