@@ -39,8 +39,16 @@ body {
 
 .description {
     color: white;
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 700;
+}
+
+.descriptiondetail {
+    color: white;
+    width: 50%;
+    margin: 0 auto;
+    font-size: 1.2rem;
+    line-height: 1.6rem;
 }
 
 .startbtn {

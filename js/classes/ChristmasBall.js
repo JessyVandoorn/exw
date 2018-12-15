@@ -11,40 +11,28 @@ class ChristmasBall {
         const geomBall = new THREE.OctahedronGeometry(12, 1);
         const matBall = new THREE.MeshStandardMaterial({
             color: colors[Math.floor(Math.random()*colors.length)],
-            shading: THREE.FlatShading ,
+            flatShading: THREE.FlatShading ,
             metalness: 0,
             roughness: 0.8,
             refractionRatio: 0.25
         });
 
-        const christmasBallsCount = 10;
-        //const christmasball = new THREE.Group();
-
-        for (let i = 0; i < christmasBallsCount; i++) {
-            var ball = new THREE.Mesh(geomBall, matBall);
-            ball.position.set(
-                (Math.random() - 0) * 40,
-                (Math.random() + 10) * 20,
-                (Math.random() - 0) * 40
-            );
-            ball.castShadow = true;
-            ball.receiveShadow = true;
-            //christmasball.add(ball);
-        }
-
-        const ballGeometry = new THREE.BoxGeometry(16,18,18);
+        const ball = new THREE.Mesh(geomBall, matBall);
+        ball.castShadow = true;
+        ball.receiveShadow = true;
+        this.mesh.add(ball);
+ 
+        const ballGeometry = new THREE.BoxGeometry(20, 20, 20);
         const kerstbal = new THREE.Mesh(ballGeometry);
         kerstbal.name = "kerstBal";
-
+        kerstbal.material.visible = false;
         this.mesh.add(kerstbal);
-
-        this.mesh.add(ball);
 
         // The top of the ball
         const geomShape = new THREE.CylinderGeometry(4, 6, 10, 6, 1);
         const matShape = new THREE.MeshStandardMaterial( {
             color: 0xf8db08,
-            shading: THREE.FlatShading ,
+            flatShading: THREE.FlatShading ,
             metalness: 0,
             roughness: 0.8,
             refractionRatio: 0.25
@@ -59,7 +47,7 @@ class ChristmasBall {
         const geomShapeTwo = new THREE.TorusGeometry( 2,1, 6, 4, Math.PI);
         const matShapeTwo = new THREE.MeshStandardMaterial( {
             color: 0xf8db08,
-            shading: THREE.FlatShading ,
+            flatShading: THREE.FlatShading ,
             metalness: 0,
             roughness: 0.8,
             refractionRatio: 0.25

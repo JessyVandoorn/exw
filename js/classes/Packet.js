@@ -9,7 +9,7 @@ class Packet {
         const geomCockpit = new THREE.BoxGeometry(60, 50, 50, 1, 1, 1);
         const matCockpit = new THREE.MeshPhongMaterial({
             color: colors[Math.floor(Math.random()*colors.length)],
-            shading: THREE.Flatshading
+            flatShading: THREE.Flatshading
         });
         const cockpit = new THREE.Mesh(geomCockpit, matCockpit);
         cockpit.castShadow = true;
@@ -20,7 +20,7 @@ class Packet {
         const geomTailPlaneRight = new THREE.BoxGeometry(7, 56, 2, 1, 1, 1);
 	    const matTailPlaneRight = new THREE.MeshPhongMaterial({
             color:Colors.white, 
-            shading:THREE.FlatShading
+            flatShading:THREE.FlatShading
         });
 	    const tailPlaneRight = new THREE.Mesh(geomTailPlaneRight, matTailPlaneRight);
 	    tailPlaneRight.position.set(30,0,0);
@@ -32,7 +32,7 @@ class Packet {
         const geomTailPlaneLeft = new THREE.BoxGeometry(2, 56, 7, 1, 1, 1);
 	    const matTailPlaneLeft = new THREE.MeshPhongMaterial({
             color:Colors.white, 
-            shading:THREE.FlatShading
+            flatShading:THREE.FlatShading
         });
 	    const tailPlaneLeft = new THREE.Mesh(geomTailPlaneLeft, matTailPlaneLeft);
 	    tailPlaneLeft.position.set(-30,0,0);
@@ -44,7 +44,7 @@ class Packet {
 	    const geomSideWing = new THREE.BoxGeometry(7, 50, 55, 1, 1, 1);
 	    const matSideWing = new THREE.MeshPhongMaterial({
             color:Colors.white, 
-            shading:THREE.FlatShading
+            flatShading:THREE.FlatShading
         });
 	    const sideWing = new THREE.Mesh(geomSideWing, matSideWing);
 	    sideWing.castShadow = true;
@@ -55,7 +55,7 @@ class Packet {
 	    const geomSideWingUp = new THREE.BoxGeometry(7, 2, 55, 1, 1, 1);
 	    const matSideWingUp = new THREE.MeshPhongMaterial({
             color:Colors.white, 
-            shading:THREE.FlatShading
+            flatShading:THREE.FlatShading
         });
 	    const sideWingUp = new THREE.Mesh(geomSideWingUp, matSideWingUp);
 	    sideWingUp.castShadow = true;
@@ -67,7 +67,7 @@ class Packet {
 	    const geomSideWingBottom = new THREE.BoxGeometry(7, 2, 55, 1, 1, 1);
 	    const matSideWingBottom = new THREE.MeshPhongMaterial({
             color:Colors.white, 
-            shading:THREE.FlatShading
+            flatShading:THREE.FlatShading
         });
 	    const sideWingBottom = new THREE.Mesh(geomSideWingBottom, matSideWingBottom);
 	    sideWingBottom.castShadow = true;
@@ -79,7 +79,7 @@ class Packet {
 	    const geomSideWingUpRotate = new THREE.BoxGeometry(58, 2, 7, 1, 1, 1);
 	    const matSideWingUpRotate = new THREE.MeshPhongMaterial({
             color:Colors.white, 
-            shading:THREE.FlatShading
+            flatShading:THREE.FlatShading
         });
 	    const sideWingUpRotate = new THREE.Mesh(geomSideWingUpRotate, matSideWingUpRotate);
 	    sideWingUpRotate.castShadow = true;

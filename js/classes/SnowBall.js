@@ -7,7 +7,7 @@ class SnowBall {
         const sphereGeometry = new THREE.DodecahedronGeometry(0.2, 4);
 		const sphereMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.white,
-			shading: THREE.FlatShading
+			flatShading: THREE.FlatShading
         })
         
         const heroSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
@@ -19,11 +19,11 @@ class SnowBall {
 		const circle = new THREE.Mesh(circleGeometry);
 		circle.name = "circle";
 		circle.material.visible = false;
-		circle.position.y = 1.8;
+		circle.position.y = 1.9;
 		circle.position.z = 4.95;
 		this.mesh.add(circle);
 
-        heroSphere.position.y = 1.8;
+        heroSphere.position.y = 1.9;
         heroSphere.position.z = 4.95;
     }
 }

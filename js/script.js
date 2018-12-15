@@ -2,6 +2,7 @@ import Colors from './classes/Colors.js';
 import SnowBall from './classes/SnowBall.js';
 import ChristmasBall from './classes/ChristmasBall.js';
 import SnowParticles from './classes/SnowParticles.js';
+import World from './classes/World.js';
 
 {
 	let sceneWidth, sceneHeight, camera, scene, renderer, fieldOfView, aspectRatio, nearPlane, farPlane, container;
@@ -9,7 +10,7 @@ import SnowParticles from './classes/SnowParticles.js';
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
-	let circle, boxTree, id;
+	let circle, boxTree, id, circleChristmasBall;
 
 	let fieldLives = document.querySelector(`.value`);
 
@@ -23,7 +24,6 @@ import SnowParticles from './classes/SnowParticles.js';
 	let treeReleaseInterval = 0.5;
 
 	let lives = 5;
-	const nBalls = 20;
 
 	let mic, pitch, sound;
 
@@ -224,7 +224,6 @@ import SnowParticles from './classes/SnowParticles.js';
 		camera.position.z = 6.5;
 		camera.position.y = 2.5;
 
-
 		window.addEventListener('resize', handleWindowResize, false);
 	};
 
@@ -243,24 +242,11 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const createWorld = () => {
-		//class tot en met rotation 
-		//world = new World();
-		const geom = new THREE.SphereGeometry(26,40,40);
-
-       geom.applyMatrix(new THREE.Matrix4().makeRotationZ(-Math.PI/2));
-       
-       const mat = new THREE.MeshStandardMaterial({
-           color: Colors.white,
-           flatShading: true
-       });
-
-       world = new THREE.Mesh(geom, mat);
-       world.receiveShadow = true;
-	   world.castShadow = false;
-	   world.rotation.z = -Math.PI / 2;
-	   scene.add(world);
-       world.position.y = -24;
-	   world.position.z = 2;
+		world = new World();
+		world.mesh.rotation.z = -Math.PI / 2;
+        world.mesh.position.y = -24;
+        world.mesh.position.z = 2;
+	   	scene.add(world.mesh);
 		addWorldTrees();
 	};
 
@@ -271,12 +257,6 @@ import SnowParticles from './classes/SnowParticles.js';
 		sun.position.set(12, 6, -7);
 		sun.castShadow = true;
 		scene.add(sun);
-
-		//Set up shadow properties for the sun light
-		sun.shadow.mapSize.width = 256;
-		sun.shadow.mapSize.height = 256;
-		sun.shadow.camera.near = 0.5;
-		sun.shadow.camera.far = 50;
 	};
 
 	const addPathTree = () => {
@@ -308,7 +288,7 @@ import SnowParticles from './classes/SnowParticles.js';
 
 			treesInPath.push(newTree);
 			//plaats van bomen op de planeet - ze kunnen eropgezet worden
-			sphericalHelper.set(26 - 0.3, pathAngleValues[row], -world.rotation.x + 4);
+			sphericalHelper.set(26 - 0.3, pathAngleValues[row], -world.mesh.rotation.x + 4);
 		} else {
 			newTree = createTree();
 			let forestAreaAngle = 0;
@@ -321,38 +301,26 @@ import SnowParticles from './classes/SnowParticles.js';
 		}
 
 		newTree.position.setFromSpherical(sphericalHelper);
-		// wordl.mesh.position
-		let rollingGroundVector = world.position.clone().normalize();
+		let rollingGroundVector = world.mesh.position.clone().normalize();
 		let treeVector = newTree.position.clone().normalize();
 		newTree.quaternion.setFromUnitVectors(treeVector, rollingGroundVector);
 		newTree.rotation.x += (Math.random() * (2 * Math.PI / 10)) + -Math.PI / 10;
 
-		world.add(newTree);
+		world.mesh.add(newTree);
 	};
 
 	const createTree = () => {
 		let sides = 8;
 		let tiers = 6;
-		// let scalarMultiplier = (Math.random() * (0.25 - 0.1)) + 0.05;
 		let midPointVector = new THREE.Vector3();
-		// let vertexVector = new THREE.Vector3();
 		let treeGeometry = new THREE.ConeGeometry(0.5, 1, sides, tiers);
 		let treeMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.treeMaterial,
-			shading: THREE.FlatShading
+			flatShading: THREE.FlatShading
 		});
 
 		let offset;
 		midPointVector = treeGeometry.vertices[0].clone();
-		let currentTier = 0;
-		let vertexIndex;
-
-		// blowUpTree(treeGeometry.vertices, sides, 0, scalarMultiplier);
-		// tightenTree(treeGeometry.vertices, sides, 1);
-		// blowUpTree(treeGeometry.vertices, sides, 2, scalarMultiplier * 1.1, true);
-		// tightenTree(treeGeometry.vertices, sides, 3);
-		// blowUpTree(treeGeometry.vertices, sides, 4, scalarMultiplier * 1.2);
-		// tightenTree(treeGeometry.vertices, sides, 5);
 
 		const treeTop = new THREE.Mesh(treeGeometry, treeMaterial);
 		treeTop.castShadow = true;
@@ -363,17 +331,17 @@ import SnowParticles from './classes/SnowParticles.js';
 		const treeTrunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
 		const trunkMaterial = new THREE.MeshStandardMaterial({
 			color: Colors.trunkMaterial,
-			shading: THREE.FlatShading
+			flatShading: THREE.FlatShading
 		});
 
 		const treeTrunk = new THREE.Mesh(treeTrunkGeometry, trunkMaterial);
-		treeTrunk.position.y = 0.25;
+		treeTrunk.position.y = 0.3;
 
 		const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 		boxTree = new THREE.Mesh(boxGeometry);
 		boxTree.name = "treeBox";
 		boxTree.material.visible = false;
-		boxTree.position.y = 0.25;
+		boxTree.position.y = 0.3;
 		collidableMeshList.push(boxTree);
 
 		const tree = new THREE.Object3D();
@@ -385,57 +353,7 @@ import SnowParticles from './classes/SnowParticles.js';
 		return tree;
 	};
 
-	// const blowUpTree = (vertices, sides, currentTier, scalarMultiplier, odd) => {
-	// 	let vertexIndex;
-	// 	let vertexVector = new THREE.Vector3();
-	// 	let midPointVector = vertices[0].clone();
-	// 	let offset;
-
-	// 	for (let i = 0; i < sides; i++) {
-	// 		vertexIndex = (currentTier * sides) + 1;
-	// 		vertexVector = vertices[i + vertexIndex].clone();
-	// 		midPointVector.y = vertexVector.y;
-	// 		offset = vertexVector.sub(midPointVector);
-
-	// 		if (odd) {
-	// 			if (i % 2 === 0) {
-	// 				offset.normalize().multiplyScalar(scalarMultiplier / 6);
-	// 				vertices[i + vertexIndex].add(offset);
-	// 			} else {
-	// 				offset.normalize().multiplyScalar(scalarMultiplier);
-	// 				vertices[i + vertexIndex].add(offset);
-	// 				vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
-	// 			}
-	// 		} else {
-	// 			if (i % 2 !== 0) {
-	// 				offset.normalize().multiplyScalar(scalarMultiplier / 6);
-	// 				vertices[i + vertexIndex].add(offset);
-	// 			} else {
-	// 				offset.normalize().multiplyScalar(scalarMultiplier);
-	// 				vertices[i + vertexIndex].add(offset);
-	// 				vertices[i + vertexIndex].y = vertices[i + vertexIndex + sides].y + 0.05;
-	// 			}
-	// 		}
-	// 	}
-	// };
-
-	// const tightenTree = (vertices, sides, currentTier) => {
-	// 	let vertexIndex;
-	// 	let vertexVector = new THREE.Vector3();
-	// 	let midPointVector = vertices[0].clone();
-	// 	let offset;
-
-	// 	for (let i = 0; i < sides; i++) {
-	// 		vertexIndex = (currentTier * sides) + 1;
-	// 		vertexVector = vertices[i + vertexIndex].clone();
-	// 		midPointVector.y = vertexVector.y;
-	// 		offset = vertexVector.sub(midPointVector);
-	// 		offset.normalize().multiplyScalar(0.06);
-	// 		vertices[i + vertexIndex].sub(offset);
-	// 	}
-	// };
-
-	const doTreeLogic = () => {
+	const doTreeCollision = () => {
 		circle = snowBall.mesh.children[1];
 		let originPoint = circle.position.clone();
 
@@ -447,14 +365,11 @@ import SnowParticles from './classes/SnowParticles.js';
 			let ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
 			let collisionResults = ray.intersectObjects(collidableMeshList);
 			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-
 				if (collisionResults[0].object.name == "kerstBal") {
-					console.log(" Hit ");
-					console.log("kerstbal");
 					lives++;
 				} else if (collisionResults[0].object.name == "treeBox") {
 					collisionResults[0].object.parent.visible = false;
-					// lives--;
+					//lives--;
 				}
 			}
 		}
@@ -468,14 +383,14 @@ import SnowParticles from './classes/SnowParticles.js';
 	const addWorldBalls = () => {
 		christmasBall = new ChristmasBall();
 		christmasBall.mesh.scale.set(.01, .01, .01);
+		christmasBall.mesh.position.z = 0;
+		christmasBall.mesh.position.y = 2;
 		christmasBall.mesh.position.x = Math.random() * 6.5 - 3.5;
 		collidableMeshList.push(christmasBall.mesh);
-		christmasBall.mesh.name = "kerstBal";
 		scene.add(christmasBall.mesh);
 	};
 
-	const updateSphere = () => {
-
+	const updateSnowBall = () => {
 		if (ac == -1) {} else if (ac < 300) {
 			snowBall.mesh.position.x -= .025;
 			if (snowBall.mesh.position.x < container.width-50) {
@@ -483,17 +398,15 @@ import SnowParticles from './classes/SnowParticles.js';
 			}
 		} else if (ac > 1000) {
 			if (snowBall.mesh.position.x > window.width-50) {
-				console.log(window.width);
 				snowBall.mesh.position.x -= .50;
 			}
 			snowBall.mesh.position.x += .025;
 			snowBall.mesh.position.y += .025;
 		}
-
 	};
 
 	const loop = () => {
-		world.rotation.x += 0.005;
+		world.mesh.rotation.x += 0.005;
 		if (snowBall.mesh.position.y <= 1.8) {
 			jumping = false;
 			bounceValue = (Math.random() * .04) + 0.005;
@@ -508,10 +421,10 @@ import SnowParticles from './classes/SnowParticles.js';
 			addWorldBalls();
 		}
 
-		updateSphere();
+		updateSnowBall();
 
 		if (isInitialized) {
-			doTreeLogic();
+			doTreeCollision();
 		}
 
 		fieldLives.innerHTML = lives;
@@ -520,12 +433,15 @@ import SnowParticles from './classes/SnowParticles.js';
 
 		particlesSnow.mesh.position.y -= 0.02;
 		if (particlesSnow.mesh.position.y < -4) {
-			particlesSnow.mesh.position.y += 10;
+			particlesSnow.mesh.position.y += 8;
 		}
 
 		christmasBall.mesh.position.z += 0.25;
+		if(christmasBall.mesh.position.z == 5.5) {
+			christmasBall.mesh.visible = false;
+		}
 
-		// fieldLives.innerHTML = lives;
+		fieldLives.innerHTML = lives;
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
@@ -555,10 +471,15 @@ import SnowParticles from './classes/SnowParticles.js';
 		description.textContent = 'Press space to start the game';
 		description.classList.add(`description`);
 
+		const descriptiondetail =  document.createElement(`p`);
+		descriptiondetail.textContent = 'Make high or low tones to move the snowball to the left or right. But pay attention to the Christmas trees that you can not touch them or you lose a life. When catching Christmas balls you get a life.';
+		descriptiondetail.classList.add(`descriptiondetail`);
+
 		const containerdiv = document.createElement(`div`);
 		containerdiv.setAttribute(`id`, 'container');
 		containerdiv.appendChild(title);
 		containerdiv.appendChild(description);
+		containerdiv.appendChild(descriptiondetail);
 
 		const containerbody = document.querySelector(`body`);
 		containerbody.appendChild(containerdiv);
@@ -572,6 +493,7 @@ import SnowParticles from './classes/SnowParticles.js';
 				containerdiv.classList.add(`hide`);
 				container = document.getElementById('world');
 				fieldLives.classList.remove(`hide`);
+				descriptiondetail.classList.add(`hide`);
 				lives = 5;
 				container.appendChild(renderer.domElement);
 				isInitialized = true;
@@ -580,7 +502,6 @@ import SnowParticles from './classes/SnowParticles.js';
 	};
 
 	const gameOver = () => {
-
 		const container = document.getElementById(`world`);
 		if (container.contains(document.querySelector('canvas'))) {
 			container.removeChild(document.querySelector(`canvas`));

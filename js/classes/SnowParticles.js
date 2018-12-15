@@ -7,7 +7,7 @@ class SnowParticles {
         const flakeGeometry = new THREE.OctahedronGeometry(.02, 1);
         const flakeMaterial = new THREE.MeshStandardMaterial({
             color: Colors.white,
-            shading: THREE.FlatShading,
+            flatShading: THREE.FlatShading,
             metalness: 0,
         });
 
