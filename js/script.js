@@ -23,7 +23,7 @@ import World from './classes/World.js';
 	// kijken of hoger meer bomen geeft in middenvak
 	let treeReleaseInterval = 0.5;
 
-	let lives = 5;
+	let lives = 9;
 
 	let mic, pitch, sound;
 
@@ -166,7 +166,7 @@ import World from './classes/World.js';
 	const loadAudio = () => {
 		//inladen kerstmuziek
 		const audioLoader = new THREE.AudioLoader();
-		audioLoader.load('../assets/audio/music.mp3', function (buffer) {
+		audioLoader.load('./assets/audio/music.mp3', function (buffer) {
 			sound.setBuffer(buffer);
 			sound.setLoop(true);
 			sound.setVolume(0.5);
@@ -369,7 +369,7 @@ import World from './classes/World.js';
 					lives++;
 				} else if (collisionResults[0].object.name == "treeBox") {
 					collisionResults[0].object.parent.visible = false;
-					//lives--;
+					lives--;
 				}
 			}
 		}
@@ -386,7 +386,7 @@ import World from './classes/World.js';
 		christmasBall.mesh.position.z = 0;
 		christmasBall.mesh.position.y = 2;
 		christmasBall.mesh.position.x = Math.random() * 6.5 - 3.5;
-		collidableMeshList.push(christmasBall.mesh);
+		collidableMeshList.push(christmasBall.mesh.children[1]);
 		scene.add(christmasBall.mesh);
 	};
 
@@ -427,8 +427,6 @@ import World from './classes/World.js';
 			doTreeCollision();
 		}
 
-		fieldLives.innerHTML = lives;
-
 		audioContext = new window.AudioContext();
 
 		particlesSnow.mesh.position.y -= 0.02;
@@ -441,7 +439,7 @@ import World from './classes/World.js';
 			christmasBall.mesh.visible = false;
 		}
 
-		fieldLives.innerHTML = lives;
+		fieldLives.innerHTML = lives/3;
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
@@ -494,7 +492,7 @@ import World from './classes/World.js';
 				container = document.getElementById('world');
 				fieldLives.classList.remove(`hide`);
 				descriptiondetail.classList.add(`hide`);
-				lives = 5;
+				lives = 9;
 				container.appendChild(renderer.domElement);
 				isInitialized = true;
 			}
