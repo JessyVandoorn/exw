@@ -25,7 +25,21 @@ import World from './classes/World.js';
 
 	let lives = 9;
 
-	let mic, pitch, sound;
+	let highNote = false;
+	let lowNote = false;
+	let game = false;
+
+	let hogeNoot;
+	let lageNoot;
+
+	const description = document.createElement(`p`);
+	const title = document.createElement(`h1`);
+	const containerdiv = document.createElement(`div`);
+	const containerbody = document.querySelector(`body`);
+	const descriptiondetail = document.createElement(`p`);
+	const pitchbody = document.querySelector('.pitch');
+
+	let mic, pitch, sound, ac;
 
 	let treesInPath, treesPool, ballsPool, world, snowBall, heroRollingSpeed, sphericalHelper, pathAngleValues;
 
@@ -70,8 +84,9 @@ import World from './classes/World.js';
 		updatePitch();
 	};
 
-
-	const toggleLiveInput = () => {
+	//togglePlayGame
+	const togglePlayGame = () => {
+		audioContext.resume();
 		if (isPlaying) {
 			//stop playing and return
 			sourceNode.stop(0);
@@ -95,11 +110,63 @@ import World from './classes/World.js';
 		}, gotStream);
 	};
 
-	let ac;
+	const toggleLowNote = () => {
+
+		navigator.mediaDevices.getUserMedia({
+				audio: true
+			})
+			.then(stream => {
+
+				gotStream(stream);
+
+				setTimeout(() => {
+					audioContext.suspend();
+				}, 3000);
+
+			});
+	};
+
+	const toggleHighNote = () => {
+		if (audioContext.state === 'suspended') {
+			audioContext.resume().then(function () {
+				console.log(audioContext);
+			});
+
+			navigator.mediaDevices.getUserMedia({
+					audio: true
+				})
+				.then(stream => {
+
+
+					gotStream(stream);
+
+					setTimeout(() => {
+						audioContext.suspend();
+					}, 6000);
+
+				});
+		};
+	};
+
 	let rafID = null;
 	let tracks = null;
 	let buflen = 1024;
 	let buf = new Float32Array(buflen);
+
+	const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+	const noteFromPitch = (frequency) => {
+		var noteNum = 12 * (Math.log(frequency / 440) / Math.log(2));
+		return Math.round(noteNum) + 69;
+	}
+
+	const frequencyFromNoteNumber = (note) => {
+		return 440 * Math.pow(2, (note - 69) / 12);
+	}
+
+	const centsOffFromPitch = (frequency, note) => {
+		return Math.floor(1200 * Math.log(frequency / frequencyFromNoteNumber(note)) / Math.log(2));
+	}
 
 
 	let MIN_SAMPLES = 0; // will be initialized when AudioContext is created.
@@ -157,6 +224,10 @@ import World from './classes/World.js';
 		analyser.getFloatTimeDomainData(buf);
 		//sampleRate is set by the machine on 44.1kHz
 		ac = autoCorrelate(buf, audioContext.sampleRate);
+
+		pitch = ac;
+		const note = noteFromPitch(pitch);
+		const noteString = noteStrings[note % 12];
 
 		if (!window.requestAnimationFrame)
 			window.requestAnimationFrame = window.webkitRequestAnimationFrame;
@@ -244,9 +315,9 @@ import World from './classes/World.js';
 	const createWorld = () => {
 		world = new World();
 		world.mesh.rotation.z = -Math.PI / 2;
-        world.mesh.position.y = -24;
-        world.mesh.position.z = 2;
-	   	scene.add(world.mesh);
+		world.mesh.position.y = -24;
+		world.mesh.position.z = 2;
+		scene.add(world.mesh);
 		addWorldTrees();
 	};
 
@@ -369,7 +440,7 @@ import World from './classes/World.js';
 					lives++;
 				} else if (collisionResults[0].object.name == "treeBox") {
 					collisionResults[0].object.parent.visible = false;
-					lives--;
+					lives -= 1;
 				}
 			}
 		}
@@ -391,17 +462,18 @@ import World from './classes/World.js';
 	};
 
 	const updateSnowBall = () => {
-		if (ac == -1) {} else if (ac < 300) {
+		if (ac < 300) {
 			snowBall.mesh.position.x -= .025;
-			if (snowBall.mesh.position.x < container.width-50) {
-				snowBall.mesh.position.x += .50;
+			if (snowBall.mesh.position.x < -1.5) {
+				snowBall.mesh.position.x += .25;
 			}
-		} else if (ac > 1000) {
-			if (snowBall.mesh.position.x > window.width-50) {
-				snowBall.mesh.position.x -= .50;
-			}
+		} else if (ac > 300) {
+			console.log(snowBall.mesh.position.x);
 			snowBall.mesh.position.x += .025;
-			snowBall.mesh.position.y += .025;
+			if (snowBall.mesh.position.x > 1.5) {
+				console.log(window.width);
+				snowBall.mesh.position.x -= .025;
+			}
 		}
 	};
 
@@ -435,11 +507,11 @@ import World from './classes/World.js';
 		}
 
 		christmasBall.mesh.position.z += 0.25;
-		if(christmasBall.mesh.position.z == 5.5) {
+		if (christmasBall.mesh.position.z == 5.5) {
 			christmasBall.mesh.visible = false;
 		}
 
-		fieldLives.innerHTML = lives/3;
+		fieldLives.innerHTML = lives / 3;
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
@@ -461,25 +533,24 @@ import World from './classes/World.js';
 		if (document.getElementById('container')) {
 			document.getElementById('container').remove();
 		}
-		const title = document.createElement(`h1`);
+
 		title.textContent = 'Save Christmas';
 		title.classList.add(`title`);
 
-		const description = document.createElement(`p`);
 		description.textContent = 'Press space to start the game';
 		description.classList.add(`description`);
 
-		const descriptiondetail =  document.createElement(`p`);
 		descriptiondetail.textContent = 'Make high or low tones to move the snowball to the left or right. But pay attention to the Christmas trees that you can not touch them or you lose a life. When catching Christmas balls you get a life.';
 		descriptiondetail.classList.add(`descriptiondetail`);
 
-		const containerdiv = document.createElement(`div`);
+		pitchbody.classList.add('hide');
+
 		containerdiv.setAttribute(`id`, 'container');
 		containerdiv.appendChild(title);
 		containerdiv.appendChild(description);
 		containerdiv.appendChild(descriptiondetail);
 
-		const containerbody = document.querySelector(`body`);
+
 		containerbody.appendChild(containerdiv);
 
 		const fieldLives = document.querySelector('.lives_value');
@@ -487,12 +558,64 @@ import World from './classes/World.js';
 
 		document.addEventListener('keypress', (event) => {
 			if (event.keyCode === 32) {
+				captureLowPitch();
+			}
+		})
+	};
+
+	const captureLowPitch = () => {
+		description.textContent = 'Haal een lage noot voor 3 seconden';
+		description.classList.add(`description`);
+
+		//show 3 seconds or show lowest note
+
+		setTimeout(() => {
+			description.textContent = "druk op spatie om de hoge noot te halen";
+		}, 5000);
+
+		descriptiondetail.classList.add(`hide`);
+
+		pitchbody.classList.remove('hide');
+
+		containerdiv.setAttribute(`id`, 'container');
+		containerdiv.appendChild(description);
+
+		containerbody.appendChild(containerdiv);
+
+		toggleLowNote();
+
+		document.addEventListener('keypress', (event) => {
+			if (event.keyCode === 32) {
+				captureHighPitch();
+			}
+		})
+	}
+
+	const captureHighPitch = () => {
+		description.textContent = 'Haal een hoge noot voor 3 seconden';
+		description.classList.add(`description`);
+
+		toggleHighNote();
+
+		setTimeout(() => {
+			description.textContent = "druk op spatie om te beginnen";
+		}, 5000);
+
+		containerdiv.setAttribute(`id`, 'container');
+		containerdiv.appendChild(description);
+
+		pitchbody.classList.remove('hide');
+
+		document.addEventListener('keypress', (event) => {
+			if (event.keyCode === 32) {
+				game = true;
+				togglePlayGame();
 				loop();
 				containerdiv.classList.add(`hide`);
 				container = document.getElementById('world');
 				fieldLives.classList.remove(`hide`);
-				descriptiondetail.classList.add(`hide`);
-				lives = 9;
+				pitchbody.classList.add('hide');
+				lives = 5;
 				container.appendChild(renderer.domElement);
 				isInitialized = true;
 			}
@@ -538,8 +661,6 @@ import World from './classes/World.js';
 		startGame();
 
 		addAudio();
-
-		toggleLiveInput();
 	};
 
 	init();

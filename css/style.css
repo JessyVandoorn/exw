@@ -81,6 +81,10 @@ body {
     border-radius: .5rem;
 }
 
+.pitch {
+    position: absolute;
+}
+
 .hide {
     display: none;
 }
