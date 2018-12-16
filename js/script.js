@@ -542,10 +542,10 @@ import World from './classes/World.js';
 		title.textContent = 'Save Christmas';
 		title.classList.add(`title`);
 
-		description.textContent = 'Press space to start the game';
+		description.textContent = 'Press space to start';
 		description.classList.add(`description`);
 
-		descriptiondetail.textContent = 'Make high or low tones to move the snowball to the left or right. But pay attention to the Christmas trees that you can not touch them or you lose a life. When catching Christmas balls you get a life.';
+		descriptiondetail.textContent = 'Make high or low pitches to move the snowball to the left or to the right. But pay attention to the Christmas trees that you do not hit them otherwise you will lose a life. When catching Christmas balls you get a life.';
 		descriptiondetail.classList.add(`descriptiondetail`);
 
 		containerdiv.setAttribute(`id`, 'container');
@@ -599,7 +599,7 @@ import World from './classes/World.js';
 		toggleHighNote(); 
 
 		setTimeout(() => {
-			description.textContent = "Press space to begin";
+			description.textContent = "Press space to start the game";
 		}, 5000);
 
 		containerdiv.setAttribute(`id`, 'container');
