@@ -10,7 +10,7 @@ import World from './classes/World.js';
 
 	let particles, currentLane, clock, jumping, particleGeometry, hasCollided;
 
-	let circle, boxTree, id, circleChristmasBall;
+	let circle, boxTree, id, note, noteString;
 
 	let fieldLives = document.querySelector(`.value`);
 
@@ -37,7 +37,7 @@ import World from './classes/World.js';
 	const containerdiv = document.createElement(`div`);
 	const containerbody = document.querySelector(`body`);
 	const descriptiondetail = document.createElement(`p`);
-	const pitchbody = document.querySelector('.pitch');
+	const livesDiv = document.querySelector('.lives_value');
 
 	let mic, pitch, sound, ac;
 
@@ -226,8 +226,8 @@ import World from './classes/World.js';
 		ac = autoCorrelate(buf, audioContext.sampleRate);
 
 		pitch = ac;
-		const note = noteFromPitch(pitch);
-		const noteString = noteStrings[note % 12];
+		 note = noteFromPitch(pitch);
+		 noteString = noteStrings[note % 12];
 
 		if (!window.requestAnimationFrame)
 			window.requestAnimationFrame = window.webkitRequestAnimationFrame;
@@ -424,7 +424,7 @@ import World from './classes/World.js';
 		return tree;
 	};
 
-	const doTreeCollision = () => {
+	const checkCollision = () => {
 		circle = snowBall.mesh.children[1];
 		let originPoint = circle.position.clone();
 
@@ -437,10 +437,12 @@ import World from './classes/World.js';
 			let collisionResults = ray.intersectObjects(collidableMeshList);
 			if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
 				if (collisionResults[0].object.name == "kerstBal") {
+					collisionResults[0].object.parent.visible = false;
+					collisionResults[0].object.visible = false;
 					lives++;
 				} else if (collisionResults[0].object.name == "treeBox") {
 					collisionResults[0].object.parent.visible = false;
-					lives -= 1;
+					lives--;
 				}
 			}
 		}
@@ -461,17 +463,19 @@ import World from './classes/World.js';
 		scene.add(christmasBall.mesh);
 	};
 
+
 	const updateSnowBall = () => {
-		if (ac < 300) {
+		if(ac == -1) {
+			
+		}
+		else if (ac < 300) {
 			snowBall.mesh.position.x -= .025;
 			if (snowBall.mesh.position.x < -1.5) {
 				snowBall.mesh.position.x += .25;
 			}
 		} else if (ac > 300) {
-			console.log(snowBall.mesh.position.x);
 			snowBall.mesh.position.x += .025;
 			if (snowBall.mesh.position.x > 1.5) {
-				console.log(window.width);
 				snowBall.mesh.position.x -= .025;
 			}
 		}
@@ -496,7 +500,7 @@ import World from './classes/World.js';
 		updateSnowBall();
 
 		if (isInitialized) {
-			doTreeCollision();
+			checkCollision();
 		}
 
 		audioContext = new window.AudioContext();
@@ -507,11 +511,12 @@ import World from './classes/World.js';
 		}
 
 		christmasBall.mesh.position.z += 0.25;
-		if (christmasBall.mesh.position.z == 5.5) {
+		if(christmasBall.mesh.position.z == 5.5) {
 			christmasBall.mesh.visible = false;
+			console.log(christmasBall);
 		}
 
-		fieldLives.innerHTML = lives / 3;
+		fieldLives.innerHTML = lives;
 
 		renderer.render(scene, camera);
 		id = requestAnimationFrame(loop);
@@ -543,8 +548,6 @@ import World from './classes/World.js';
 		descriptiondetail.textContent = 'Make high or low tones to move the snowball to the left or right. But pay attention to the Christmas trees that you can not touch them or you lose a life. When catching Christmas balls you get a life.';
 		descriptiondetail.classList.add(`descriptiondetail`);
 
-		pitchbody.classList.add('hide');
-
 		containerdiv.setAttribute(`id`, 'container');
 		containerdiv.appendChild(title);
 		containerdiv.appendChild(description);
@@ -553,8 +556,8 @@ import World from './classes/World.js';
 
 		containerbody.appendChild(containerdiv);
 
-		const fieldLives = document.querySelector('.lives_value');
-		fieldLives.classList.add(`hide`);
+		
+		livesDiv.classList.add(`hide`);
 
 		document.addEventListener('keypress', (event) => {
 			if (event.keyCode === 32) {
@@ -564,18 +567,16 @@ import World from './classes/World.js';
 	};
 
 	const captureLowPitch = () => {
-		description.textContent = 'Haal een lage noot voor 3 seconden';
+		description.textContent = 'Make a low note for 3 seconds';
 		description.classList.add(`description`);
 
 		//show 3 seconds or show lowest note
 
 		setTimeout(() => {
-			description.textContent = "druk op spatie om de hoge noot te halen";
+			description.textContent = "Press space to capture a high note";
 		}, 5000);
 
 		descriptiondetail.classList.add(`hide`);
-
-		pitchbody.classList.remove('hide');
 
 		containerdiv.setAttribute(`id`, 'container');
 		containerdiv.appendChild(description);
@@ -592,19 +593,17 @@ import World from './classes/World.js';
 	}
 
 	const captureHighPitch = () => {
-		description.textContent = 'Haal een hoge noot voor 3 seconden';
+		description.textContent = 'Make a high note for 3 seconds';
 		description.classList.add(`description`);
 
-		toggleHighNote();
+		toggleHighNote(); 
 
 		setTimeout(() => {
-			description.textContent = "druk op spatie om te beginnen";
+			description.textContent = "Press space to begin";
 		}, 5000);
 
 		containerdiv.setAttribute(`id`, 'container');
 		containerdiv.appendChild(description);
-
-		pitchbody.classList.remove('hide');
 
 		document.addEventListener('keypress', (event) => {
 			if (event.keyCode === 32) {
@@ -613,9 +612,8 @@ import World from './classes/World.js';
 				loop();
 				containerdiv.classList.add(`hide`);
 				container = document.getElementById('world');
-				fieldLives.classList.remove(`hide`);
-				pitchbody.classList.add('hide');
-				lives = 5;
+				livesDiv.classList.remove(`hide`);
+				lives = 9;
 				container.appendChild(renderer.domElement);
 				isInitialized = true;
 			}
@@ -636,8 +634,7 @@ import World from './classes/World.js';
 		startbtn.classList.add('startbtn');
 		startbtn.addEventListener('click', handlePlayAgain);
 
-		fieldLives = document.querySelector(".lives_value");
-		fieldLives.classList.add(`hide`);
+		livesDiv.classList.add(`hide`);
 
 		const containerInfo = document.querySelector('#container');
 		containerInfo.classList.remove('hide');
